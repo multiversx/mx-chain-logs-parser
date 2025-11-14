@@ -1,5 +1,6 @@
 import json
 import re
+from typing import Any
 
 log_entry_pattern = re.compile(
     r'^(?P<logger_level>WARN|ERROR|DEBUG|TRACE|INFO)\s*\['      # Log level
@@ -32,7 +33,7 @@ class EntryParser:
     def __init__(self, node_name: str):
         self.alerts = []
 
-    def parse_context(self, context: str):
+    def parse_context(self, context: str) -> dict[str, Any]:
         # Parse shard, epoch, round, subround from context
         context_match = context_pattern.match(context)
         if context_match:
@@ -59,6 +60,7 @@ class EntryParser:
             return message.strip(), ''
 
     def parse_log_entry(self, log_content: str) -> dict[str, str]:
+        data = {}
         match = log_entry_pattern.search(log_content)
         if match:
             data = match.groupdict()

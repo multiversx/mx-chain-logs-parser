@@ -1,44 +1,50 @@
 
+try:
+    # When this module is imported as part of a package
+    from .aho_corasik_parser import AhoCorasickParser
+except Exception:
+    # Fallback when running the script directly (not as a package)
+    from aho_corasik_parser import AhoCorasickParser
 
-from helpers import validate_folder_path
 
-from typing import IO, Any
+from typing import IO, Any, Generic, Type, TypeVar
 import tarfile
 from pathlib import Path
 import os
 import json
 import argparse
-from abc import ABC, abstractmethod
 
 
 """Abstract Base Class for Node Logs Checker."""
 
 
-class NodeLogsChecker(ABC):
-    def __init__(self, args: dict[str, Any]):
-        self.report_name = ''
-        self.node_name = args.get('node_name', 'unknown-node')
-        self.run_name = args.get('run_name', 'unknown-run')
+P = TypeVar("P", bound=AhoCorasickParser)
 
+
+class NodeLogsChecker(Generic[P]):
+    def __init__(self, parser_cls: Type[P], args: argparse.Namespace):
+        self.parser: P = parser_cls()
         self.initialize_checker(args)
 
     """ Parses a .log file for the given node. """
-    @abstractmethod
-    def process_log_file(self, log_lines: list[str]):
+
+    def process_parsed_result(self):
         pass
 
     """ Post-process the node logs after all log files have been parsed. """
-    @abstractmethod
+
     def post_process_node_logs(self):
         pass
 
-    @abstractmethod
-    def initialize_checker(self, args: dict[str, Any]):
+    def initialize_checker(self, args: argparse.Namespace):
         pass
 
-    @abstractmethod
     def create_json_for_node(self) -> dict[str, Any]:
-        pass
+        return {}
+
+    def reset_node(self, args: argparse.Namespace):
+        self.node_name = args.node_name if args.node_name else 'unknown-node'
+        self.run_name = args.run_name if args.run_name else 'unknown-run'
 
     def handle_node_from_archive(self, tar_gz_contents: IO[bytes]):
         with tarfile.open(fileobj=tar_gz_contents, mode='r:gz') as logs_archive:
@@ -51,21 +57,24 @@ class NodeLogsChecker(ABC):
             # process all log files for the node
             for member in sorted_members:
                 if member.name.startswith('logs/logs/') and member.name.endswith('.log'):
+                    print("    Processing log file:", member.name)
                     raw_data = logs_archive.extractfile(member)
                     if not raw_data:
                         continue
 
                     with raw_data as f:
                         # Decode and pass an iterable (a list of lines)
-                        log_lines = (line.decode("utf-8") for line in f)  # Generator expression
-                        self.process_log_file(log_lines)
+                        log_lines = [line.decode("utf-8") for line in f]
+                        self.parser.parse(log_lines, {})
+                        self.process_parsed_result()
 
     def handle_node_from_folder(self, node_logs_path: str):
         files = sorted(Path(node_logs_path).glob('*.log'))
         for file in files:
             with open(file, 'r') as f:
                 log_lines = f.readlines()
-                self.process_log_file(log_lines)
+                self.parser.parse(log_lines, {})
+                self.process_parsed_result()
 
     def write_node_json(self, path=''):
         if not path:
@@ -78,40 +87,7 @@ class NodeLogsChecker(ABC):
         with open(output_file, "w") as json_file:
             json.dump(self.create_json_for_node(), json_file, indent=4)
 
-
-if __name__ == "__main__":
-    # Should be run either from node logs folder or with [path] parameter
-
-    parser = argparse.ArgumentParser(
-        description='''
-            Runs logs check for the selected node. Example script:
-
-                python ansible/templates/logs-checker/node_logs_checker.py --path=logsPath/node_logs_folder/logs
-            ''',
-        epilog='!!! Location should be in the node\'s LOGS folder !!!\n',
-        formatter_class=argparse.RawTextHelpFormatter
-    )
-    parser.add_argument(
-        '--path',
-        required=False,
-        type=validate_folder_path,
-        help='Path to the logs folder.'
-    )
-    args = parser.parse_args()
-
-    if args.path:
-        current_folder = args.path
-    else:
-        current_folder = os.getcwd()
-
-    try:
-        node_name = current_folder.rsplit('--', 1)[1].replace('/logs', '')
-    except IndexError:
-        node_name = ''
-
-    if ('validator' in node_name or 'observer' in node_name) and current_folder.endswith('/logs'):
-        selected_folder = current_folder
-        node_logs_checker: NodeLogsChecker = NodeLogsChecker.from_node_logs(node_name, 'test_run', selected_folder)
-        node_logs_checker.write_node_report_json(selected_folder)
-    else:
-        print('Invalid folder')
+    @classmethod
+    def from_args(cls: Type['NodeLogsChecker[P]'], parser_cls: Type[P], args: argparse.Namespace) -> 'NodeLogsChecker[P]':
+        instance = cls(parser_cls, args)
+        return instance

@@ -16,3 +16,7 @@ export PYTHONPATH=.
 INSTALL DEVELOPMENT DEPENDENCIES
 
 pip install -r ./requirements-dev.txt --upgrade
+
+EXAMPLE USAGE
+
+python -m multiversx_cross_shard_analysis.gather_data --path /home/mihaela/Downloads/cross-shard-execution-anal-9afe696daf.zip
