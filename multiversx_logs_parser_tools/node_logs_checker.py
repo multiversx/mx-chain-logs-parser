@@ -6,14 +6,12 @@ except Exception:
     # Fallback when running the script directly (not as a package)
     from aho_corasik_parser import AhoCorasickParser
 
-
-from typing import IO, Any, Generic, Type, TypeVar
+import argparse
+import json
+import os
 import tarfile
 from pathlib import Path
-import os
-import json
-import argparse
-
+from typing import IO, Any, Generic, Type, TypeVar
 
 """Abstract Base Class for Node Logs Checker."""
 
@@ -78,8 +76,8 @@ class NodeLogsChecker(Generic[P]):
 
     def write_node_json(self, path=''):
         if not path:
-            node_reports_path = './Reports/Nodes'
-            output_file = Path(f'{node_reports_path}/{self.run_name}/{self.node_name}_report.json')
+            node_reports_path = f'./Reports/{self.run_name}/Nodes'
+            output_file = Path(f'{node_reports_path}/{self.node_name}_report.json')
             directory = os.path.dirname(output_file)
             Path(directory).mkdir(parents=True, exist_ok=True)
         else:

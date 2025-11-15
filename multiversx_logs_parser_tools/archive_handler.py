@@ -1,13 +1,12 @@
 
-from typing import TypeVar
-
-from .aho_corasik_parser import AhoCorasickParser
-from .node_logs_checker import NodeLogsChecker
 import argparse
 import re
 import zipfile
+from typing import TypeVar
 
+from .aho_corasik_parser import AhoCorasickParser
 from .helpers import validate_file_path
+from .node_logs_checker import NodeLogsChecker
 
 P = TypeVar("P", bound=AhoCorasickParser)
 
@@ -42,6 +41,16 @@ class ArchiveHandler:
                         self.checker.reset_node(args)
                         self.checker.handle_node_from_archive(tar_file_io)
                     self.checker.post_process_node_logs()
+                    self.process_node_data()
+        self.process_run_data()
+
+    def process_node_data(self):
+        """Process the parsed data for a single node."""
+        pass
+
+    def process_run_data(self):
+        """Process the parsed data for the entire run."""
+        pass
 
     @staticmethod
     def get_path() -> argparse.Namespace:

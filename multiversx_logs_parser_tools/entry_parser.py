@@ -25,7 +25,7 @@ class EntryParser:
     The context [shard/epoch/round/(subround)] can be either fully formed like in '0/4/805/(END_ROUND)' or 'metachain/13/2648/(START_ROUND)'
     or partially formed, like in '/0/0/', 'metachain/2/400/'
 
-    The content of the entry is separated using the predefined separator. If the separator is not present, and a distinction cannot be made 
+    The content of the entry is separated using the predefined separator. If the separator is not present, and a distinction cannot be made
     between the message and parameters, it returns the entire entry content as message
 
     '''

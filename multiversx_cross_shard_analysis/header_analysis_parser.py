@@ -1,18 +1,16 @@
 import json
 from re import Pattern
 from typing import Any
+
 from multiversx_logs_parser_tools.aho_corasik_parser import AhoCorasickParser
 
-from .header_data import HeaderData
+from .header_structures import HeaderData
 
 
 class HeaderAnalysisParser(AhoCorasickParser):
     def __init__(self):
-        print("Before setting:", hasattr(self, "parsed_headers"))
         self.parsed_headers = HeaderData()
-        print("After setting:", hasattr(self, "parsed_headers"))
         super().__init__()
-        print("After parent init:", hasattr(self, "parsed_headers"))
 
     def get_patterns(self) -> list[tuple[Pattern[str], int]]:
         patterns = []

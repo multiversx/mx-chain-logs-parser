@@ -1,17 +1,19 @@
 from argparse import Namespace
 from typing import Any
+
 from multiversx_logs_parser_tools.node_logs_checker import NodeLogsChecker
+
+from .header_structures import HeaderData
 
 from .header_analysis_parser import HeaderAnalysisParser
 
 
 class HeaderAnalysisChecker(NodeLogsChecker):
     def __init__(self, parser_cls: type[HeaderAnalysisParser], args: Namespace):
-        self.node_parsed_headers = {}
         super().__init__(parser_cls, args)
 
     def initialize_checker(self, args):
-        self.node_parsed_headers = {}
+        self.parsed = HeaderData().header_dictionary
         return super().initialize_checker(args)
 
     def process_parsed_result(self):
@@ -32,4 +34,4 @@ class HeaderAnalysisChecker(NodeLogsChecker):
 
     def reset_node(self, args: Namespace):
         super().reset_node(args)
-        self.parsed = {'proposed_header': [], 'commited_header': []}
+        self.parsed = HeaderData().header_dictionary.copy()

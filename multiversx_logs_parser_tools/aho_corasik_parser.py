@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from re import Pattern
 from typing import Any
+
 import ahocorasick
 from ahocorasick import Automaton
+
 from .entry_parser import EntryParser
 
 
