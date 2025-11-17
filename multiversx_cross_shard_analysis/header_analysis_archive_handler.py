@@ -12,7 +12,7 @@ class HeaderAnalysisArchiveHandler(ArchiveHandler):
     def __init__(self, checker: HeaderAnalysisChecker, logs_path: str):
         self.checker = checker
         self.shard_data = ShardData()
-        self.parsed_miniblocks = {}
+
         super().__init__(checker, logs_path)
 
     def process_node_data(self):
@@ -39,3 +39,13 @@ class HeaderAnalysisArchiveHandler(ArchiveHandler):
             with open(output_file, 'w') as f:
                 json.dump(run_data, f, indent=4)
             print(f"Shard data for shard {shard_id} written to {output_file}")
+        miniblocks_reports_path = f'./Reports/{self.run_name}/Miniblocks'
+        output_file = Path(f'{miniblocks_reports_path}/miniblocks_report.json')
+        directory = output_file.parent
+        directory.mkdir(parents=True, exist_ok=True)
+        with open(output_file, 'w') as f:
+            json.dump({
+                "run_name": self.run_name,
+                "miniblocks": self.shard_data.miniblocks
+            }, f, indent=4)
+        print(f"Miniblock data written to {output_file}")
