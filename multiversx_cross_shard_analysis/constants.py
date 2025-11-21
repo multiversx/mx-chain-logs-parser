@@ -38,3 +38,25 @@ MentionType = Enum("MentionType", [
     "meta_exec_proposed",
     "meta_exec_committed",
 ])
+
+# Mappings from field number to field name for MiniBlockHeaderReserved
+FIELD_NAME_MAPPING = {
+    1: "ExecutionType",
+    2: "State",
+    3: "IndexOfFirstTxProcessed",
+    4: "IndexOfLastTxProcessed",
+}
+
+# Mappings for enum values from block.proto
+PROCESSING_TYPE_MAPPING = {
+    0: "Normal",
+    1: "Scheduled",
+    2: "Processed",
+}
+
+# Mappings for miniblock state enum values from block.proto
+MINIBLOCK_STATE_MAPPING = {
+    0: "Final",
+    1: "Proposed",
+    2: "PartialExecuted",
+}

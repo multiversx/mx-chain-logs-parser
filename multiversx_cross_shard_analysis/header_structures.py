@@ -1,5 +1,7 @@
 from typing import Any
 
+from multiversx_cross_shard_analysis.test_decode_reserved import decode_reserved_field
+
 from .constants import dest_shard, origin_shard, meta
 
 
@@ -67,13 +69,16 @@ class ShardData:
 
     def add_miniblocks(self, header: dict[str, Any], status: str):
         header_struct = Header(header, status)
+
         for mention_type, mb in header_struct.miniblocks:
             mb_hash = mb.get('hash')
             if mb_hash not in self.seen_miniblock_hashes:
                 self.seen_miniblock_hashes.add(mb_hash)
                 self.miniblocks[mb_hash] = mb.copy()
                 self.miniblocks[mb_hash]['mentioned'] = []
-            self.miniblocks[mb_hash]['mentioned'].append((mention_type, header_struct.metadata))
+            metadata = header_struct.metadata.copy()
+            metadata["reserved"] = decode_reserved_field(mb.get("reserved", ""), mb.get("txCount", 0))
+            self.miniblocks[mb_hash]['mentioned'].append((mention_type, metadata))
 
 
 class Header:
