@@ -1,5 +1,6 @@
-from enum import Enum
 from typing import Any
+
+from .constants import dest_shard, origin_shard, meta
 
 
 def get_value(variable_name: str, header: dict[str, Any]) -> str:
@@ -44,9 +45,6 @@ class HeaderData:
         return True
 
 
-MiniBlockTypes = Enum("MiniBlockType", ['MiniBlockHeaders', 'ShardInfo', 'ExecutionResults'])
-
-
 class ShardData:
     def __init__(self):
         self.parsed_headers = {0: HeaderData(), 1: HeaderData(), 2: HeaderData(), 4294967295: HeaderData()}
@@ -68,22 +66,20 @@ class ShardData:
                     self.add_miniblocks(header, header_status)
 
     def add_miniblocks(self, header: dict[str, Any], status: str):
-        header_struct = Header(header)
-        for mb_type, miniblocks in header_struct.miniblocks.items():
-            for mb in miniblocks:
-                mb_hash = mb.get('hash')
-                if mb_hash not in self.seen_miniblock_hashes:
-                    self.seen_miniblock_hashes.add(mb_hash)
-                    self.miniblocks[mb_hash] = mb.copy()
-                    self.miniblocks[mb_hash]['mentioned'] = []
-                mention_type = 'notarized' if mb_type == MiniBlockTypes.ShardInfo else status
-                self.miniblocks[mb_hash]['mentioned'].append((mention_type, header_struct.metadata))
+        header_struct = Header(header, status)
+        for mention_type, mb in header_struct.miniblocks:
+            mb_hash = mb.get('hash')
+            if mb_hash not in self.seen_miniblock_hashes:
+                self.seen_miniblock_hashes.add(mb_hash)
+                self.miniblocks[mb_hash] = mb.copy()
+                self.miniblocks[mb_hash]['mentioned'] = []
+            self.miniblocks[mb_hash]['mentioned'].append((mention_type, header_struct.metadata))
 
 
 class Header:
-    def __init__(self, header: dict[str, Any]):
+    def __init__(self, header: dict[str, Any], status: str):
         self.metadata: dict[str, Any] = self.get_header_metadata(header)
-        self.miniblocks: dict[str, list[dict[str, Any]]] = self.get_miniblocks(header)
+        self.miniblocks: list[tuple[str, dict[str, Any]]] = self.get_miniblocks(header, status)
 
     def get_header_metadata(self, header: dict[str, Any]) -> dict[str, Any]:
         if Header.isHeaderV2(header):
@@ -95,15 +91,20 @@ class Header:
             "shard_id": header.get('shardID', 4294967295),
         }
 
-    def get_miniblocks(self, header: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
-        miniblocks = {}
+    def get_miniblocks(self, header: dict[str, Any], status: str) -> list[tuple[str, dict[str, Any]]]:
+        metadata = self.metadata
+        miniblocks = []
         if Header.isHeaderV2(header):
             header = header['header']
-        miniblocks[MiniBlockTypes.MiniBlockHeaders] = header.get('miniBlockHeaders', [])
+        for miniblock in header.get('miniBlockHeaders', []):
+            miniblock_mention = f'{origin_shard if metadata['shard_id'] == miniblock['senderShardID'] else dest_shard}_{status}'
+            miniblocks.append((miniblock_mention, miniblock))
         if Header.isMetaHeader(header):
-            miniblocks[MiniBlockTypes.ShardInfo] = []
             for shard_header in header['shardInfo']:
-                miniblocks[MiniBlockTypes.ShardInfo].extend(shard_header.get('shardMiniBlockHeaders', []))
+                shard_metadata = self.get_header_metadata(shard_header)
+                for miniblock in shard_header.get('shardMiniBlockHeaders', []):
+                    miniblock_mention = f'{meta}_{origin_shard if shard_metadata['shard_id'] == miniblock['senderShardID'] else dest_shard}_{status}'
+                    miniblocks.append((miniblock_mention, miniblock))
         return miniblocks
 
     @staticmethod
