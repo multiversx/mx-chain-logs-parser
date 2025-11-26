@@ -1,11 +1,47 @@
 import json
 from typing import Any
 
+from multiversx_cross_shard_analysis.constants import COLORS_MAPPING
+
 
 class MiniblockData:
 
     def __init__(self, miniblocks: list[tuple[str, dict[str, Any]]]):
         self.miniblocks = miniblocks
+
+    def get_data_for_round_report(self) -> dict[str, Any]:
+        report = {}
+        for mb_hash, mb_info in self.miniblocks:
+            for mention_type, header in mb_info.get('mentioned', []):
+                if "proposed" in mention_type:
+                    continue
+
+                epoch = header.get('epoch')
+                if epoch not in report:
+                    report[epoch] = {}
+                round_number = header.get('round')
+                if round_number not in report[epoch]:
+                    report[epoch][round_number] = {}
+                shard = header.get('shard_id')
+                if shard not in report[epoch][round_number]:
+                    report[epoch][round_number][shard] = []
+
+                if header.get('reserved') == {}:
+                    if "meta" in mention_type:
+                        reserved = COLORS_MAPPING["meta_origin_committed"] if mention_type.startswith('meta_origin') else COLORS_MAPPING["meta_dest_committed"]
+                    else:
+                        reserved = COLORS_MAPPING["origin_final"] if mention_type.startswith('origin') else COLORS_MAPPING["dest_final"]
+                else:
+                    # execution_type = header.get('reserved', {}).get('ExecutionType', '')
+                    state = header.get('reserved', {}).get('State', '')
+                    if state == 'Proposed':
+                        reserved = COLORS_MAPPING["origin_proposed"] if mention_type.startswith('origin') else COLORS_MAPPING["dest_proposed"]
+                    elif state == 'PartialExecuted':
+                        reserved = COLORS_MAPPING["origin_partial_executed"] if mention_type.startswith('origin') else COLORS_MAPPING["dest_partial_executed"]
+                    else:
+                        reserved = COLORS_MAPPING["origin_final"] if mention_type.startswith('origin') else COLORS_MAPPING["dest_final"]
+                report[epoch][round_number][shard].append((mb_hash, reserved))
+        return report
 
     def get_data_for_detailed_report(self) -> dict[str, Any]:
         report = {}

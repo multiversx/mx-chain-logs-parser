@@ -1,5 +1,5 @@
 from enum import Enum
-
+from reportlab.lib import colors
 
 origin_shard = "origin_shard"
 dest_shard = "dest_shard"
@@ -59,4 +59,15 @@ MINIBLOCK_STATE_MAPPING = {
     0: "Final",
     1: "Proposed",
     2: "PartialExecuted",
+}
+
+COLORS_MAPPING = {
+    "origin_proposed": colors.lightyellow,
+    "origin_partial_executed": colors.orange,
+    "origin_final": colors.yellow,
+    "dest_proposed": colors.mistyrose,
+    "dest_partial_executed": colors.palevioletred,
+    "dest_final": colors.pink,
+    "meta_origin_committed": colors.lightgreen,
+    "meta_dest_committed": colors.lightblue,
 }
