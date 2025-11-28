@@ -145,7 +145,7 @@ def build_report(epoch: int, rounds_data: dict[int, Any], shards: list[int]):
     styles = getSampleStyleSheet()
 
     # title
-    story.append(Paragraph(f"<b>Miniblock Report — Epoch {epoch}</b>", styles["Title"]))
+    story.append(Paragraph(f"<b>Miniblock Shards Report — Epoch {epoch}</b>", styles["Title"]))
     story.append(Spacer(1, 8))
     story.append(build_legend())
     story.append(Spacer(1, 12))

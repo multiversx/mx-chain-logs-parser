@@ -61,6 +61,17 @@ MINIBLOCK_STATE_MAPPING = {
     2: "PartialExecuted",
 }
 
+# type names
+TYPE_NAMES = {
+    0: "TxBlock",
+    30: "StateBlock",
+    60: "PeerBlock",
+    90: "SmartContractResultBlock",
+    120: "InvalidBlock",
+    150: "ReceiptBlock",
+    255: "RewardsBlock",
+}
+
 COLORS_MAPPING = {
     "origin_proposed": colors.lightyellow,
     "origin_partial_executed": colors.orange,

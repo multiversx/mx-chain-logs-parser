@@ -3,6 +3,8 @@ from typing import Any
 
 from multiversx_cross_shard_analysis.constants import COLORS_MAPPING
 
+from multiversx_cross_shard_analysis.decode_reserved import get_default_decoded_data
+
 
 class MiniblockData:
 
@@ -41,6 +43,87 @@ class MiniblockData:
                     else:
                         reserved = COLORS_MAPPING["origin_final"] if mention_type.startswith('origin') else COLORS_MAPPING["dest_final"]
                 report[epoch][round_number][shard].append((mb_hash, reserved))
+        return report
+
+    def get_data_for_detail_report(self) -> dict[str, list[dict[str, Any]]]:
+        '''
+                {
+            "hash": "b87f711aadc8f928ff6b2a1baf0ef4381f36dd0af9d100c07e9b7b6ca7233648",
+            "receiverShardID": 0,
+            "senderShardID": 1,
+            "txCount": 50,
+            "type": 0,
+            "first_seen_round": 295,
+            "last_seen_round": 298,
+            "mentioned": {
+                298: [
+                    ("dest_proposed", "txs 1–25 / 50", COLORS_MAPPING["dest_partial_executed"]),
+                    ("dest_proposed", "txs 26–50 / 50", COLORS_MAPPING["dest_final"]),
+                ],
+                295: [
+                    ("origin_proposed", "txs 1–50 / 50", COLORS_MAPPING["origin_final"]),
+                ],
+                296: [
+                    ("meta_origin_proposed", "txs 1–50 / 50", COLORS_MAPPING["meta_origin_committed"]),
+                ],
+            },
+        },
+        '''
+        report = {}
+        for mb_hash, mb_info in self.miniblocks:
+            if mb_info['senderShardID'] == mb_info['receiverShardID']:
+                continue  # Skip same-shard miniblocks
+            origin_epoch = None
+
+            mb_data = {
+                "hash": mb_hash,
+                "first_seen_round": None,
+                "last_seen_round": None,
+                "receiverShardID": mb_info['receiverShardID'],
+                "senderShardID": mb_info['senderShardID'],
+                "txCount": mb_info['txCount'],
+                "type": mb_info['type'],
+                "mentioned": {},
+            }
+            for mention_type, header in mb_info.get('mentioned', []):
+                epoch = header.get('epoch')
+                if epoch is not None and (origin_epoch is None or epoch < origin_epoch):
+                    origin_epoch = epoch
+                round_number = header.get('round')
+                if mb_data['first_seen_round'] is None or round_number < mb_data['first_seen_round']:
+                    mb_data['first_seen_round'] = round_number
+                if mb_data['last_seen_round'] is None or round_number > mb_data['last_seen_round']:
+                    mb_data['last_seen_round'] = round_number
+                if round_number not in mb_data['mentioned']:
+                    mb_data['mentioned'][round_number] = []
+
+                reserved = header.get('reserved', {})
+                if reserved == {}:
+                    reserved = get_default_decoded_data(tx_count=mb_info['txCount'])
+                    if "meta" in mention_type:
+                        color = COLORS_MAPPING["meta_origin_committed"] if mention_type.startswith('meta_origin') else COLORS_MAPPING["meta_dest_committed"]
+                    else:
+                        color = COLORS_MAPPING["origin_final"] if mention_type.startswith('origin') else COLORS_MAPPING["dest_final"]
+                else:
+                    # execution_type = header.get('reserved', {}).get('ExecutionType', '')
+                    state = header.get('reserved', {}).get('State', '')
+                    if state == 'Proposed':
+                        color = COLORS_MAPPING["origin_proposed"] if mention_type.startswith('origin') else COLORS_MAPPING["dest_proposed"]
+                    elif state == 'PartialExecuted':
+                        color = COLORS_MAPPING["origin_partial_executed"] if mention_type.startswith('origin') else COLORS_MAPPING["dest_partial_executed"]
+                    else:
+                        color = COLORS_MAPPING["origin_final"] if mention_type.startswith('origin') else COLORS_MAPPING["dest_final"]
+                mb_data['mentioned'][round_number].append((mention_type, f"txs {reserved['IndexOfFirstTxProcessed']}–{reserved['IndexOfLastTxProcessed']} / {mb_info['txCount']}", color))
+
+            if not origin_epoch:
+                print(f"Warning: origin_epoch not found for miniblock {mb_hash}")
+                continue
+            if origin_epoch not in report:
+                report[origin_epoch] = []
+            report[origin_epoch].append(mb_data)
+
+        for epoch, mb_list in report.items():
+            mb_list.sort(key=lambda x: x['first_seen_round'])
         return report
 
     def get_data_for_detailed_report(self) -> dict[str, Any]:
