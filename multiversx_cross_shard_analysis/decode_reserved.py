@@ -1,7 +1,9 @@
 
 from typing import Any
 
-from multiversx_cross_shard_analysis.constants import FIELD_NAME_MAPPING, MINIBLOCK_STATE_MAPPING, PROCESSING_TYPE_MAPPING
+from multiversx_cross_shard_analysis.constants import (FIELD_NAME_MAPPING,
+                                                       MINIBLOCK_STATE_MAPPING,
+                                                       PROCESSING_TYPE_MAPPING)
 
 
 def get_default_decoded_data(tx_count: int) -> dict[str, Any]:

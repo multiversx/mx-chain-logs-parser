@@ -1,5 +1,5 @@
-from multiversx_cross_shard_analysis.decode_reserved import decode_reserved_field
-
+from multiversx_cross_shard_analysis.decode_reserved import \
+    decode_reserved_field
 
 mentioned_headers = {
     "origin_shard_proposed_headers": "20ec12",

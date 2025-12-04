@@ -1,11 +1,10 @@
 import json
 from pathlib import Path
+
 from multiversx_logs_parser_tools.archive_handler import ArchiveHandler
 
-from .header_structures import HeaderData, ShardData
-
-
 from .header_analysis_checker import HeaderAnalysisChecker
+from .header_structures import HeaderData, ShardData
 
 
 class HeaderAnalysisArchiveHandler(ArchiveHandler):

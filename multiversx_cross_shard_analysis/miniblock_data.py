@@ -1,8 +1,8 @@
 from typing import Any
 
 from multiversx_cross_shard_analysis.constants import COLORS_MAPPING, Colors
-
-from multiversx_cross_shard_analysis.decode_reserved import get_default_decoded_data
+from multiversx_cross_shard_analysis.decode_reserved import \
+    get_default_decoded_data
 
 
 class MiniblockData:

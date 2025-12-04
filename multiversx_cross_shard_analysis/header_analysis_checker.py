@@ -3,9 +3,8 @@ from typing import Any
 
 from multiversx_logs_parser_tools.node_logs_checker import NodeLogsChecker
 
-from .header_structures import HeaderData
-
 from .header_analysis_parser import HeaderAnalysisParser
+from .header_structures import HeaderData
 
 
 class HeaderAnalysisChecker(NodeLogsChecker):

@@ -1,18 +1,15 @@
 import json
 from typing import Any
 
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer,
-    Flowable
-)
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.pagesizes import A4
 from reportlab.graphics.shapes import Drawing, Rect, String
 from reportlab.lib import colors
-from reportlab.platypus import Table, TableStyle
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import (Flowable, Paragraph, SimpleDocTemplate, Spacer,
+                                Table, TableStyle)
 
-from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
 from multiversx_cross_shard_analysis.constants import COLORS_MAPPING
+from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
 
 # ----------------------------------------
 # legend

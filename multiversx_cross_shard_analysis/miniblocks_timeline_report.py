@@ -10,23 +10,16 @@ Produces miniblock timeline report PDF:
 
 import json
 from typing import Any
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
-    Table,
-    TableStyle,
-    PageBreak,
-)
-from reportlab.lib.styles import getSampleStyleSheet
+
 from reportlab.graphics.shapes import Drawing, Rect, String
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import (PageBreak, Paragraph, SimpleDocTemplate,
+                                Spacer, Table, TableStyle)
 from reportlab.platypus.flowables import Flowable
 
-
 from multiversx_cross_shard_analysis.constants import TYPE_NAMES
-
 from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
 
 # -----------------------------

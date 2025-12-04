@@ -2,8 +2,8 @@
 Logs parsing utilities and applications
 
 ## LOGS PARSER TOOLS:
-The tool provides general abstract classes that can be useful for parsing logs. 
-In order to create an application that uses off-line parsing of logs files, these classes must be inherited and methods should be implemented for that particular case. 
+The tool provides general abstract classes that can be useful for parsing logs.
+In order to create an application that uses off-line parsing of logs files, these classes must be inherited and methods should be implemented for that particular case.
 
 ### ARCHIVE HANDLER
 - General application processing class, that loops through the nodes in the downloaded logs archive and calls its NodeLogsChecker instance for each one of them

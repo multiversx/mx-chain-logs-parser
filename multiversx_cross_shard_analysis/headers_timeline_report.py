@@ -1,22 +1,16 @@
 import json
 from typing import Any
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
-    Table,
-    TableStyle,
-    PageBreak,
-    Flowable
-)
-from reportlab.lib.styles import getSampleStyleSheet
+
 from reportlab.graphics.shapes import Drawing, Rect, String
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import (Flowable, PageBreak, Paragraph,
+                                SimpleDocTemplate, Spacer, Table, TableStyle)
 
 from multiversx_cross_shard_analysis.constants import COLORS_MAPPING, Colors
-
-from multiversx_cross_shard_analysis.header_structures import HeaderData, ShardData
+from multiversx_cross_shard_analysis.header_structures import (HeaderData,
+                                                               ShardData)
 
 # -----------------------------
 # CONFIG (mirrors miniblock report)

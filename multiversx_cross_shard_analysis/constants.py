@@ -1,4 +1,5 @@
 from enum import Enum
+
 from reportlab.lib import colors
 
 origin_shard = "origin_shard"
