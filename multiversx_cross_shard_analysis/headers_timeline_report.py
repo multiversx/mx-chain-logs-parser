@@ -1,4 +1,7 @@
+import argparse
 import json
+import os
+import sys
 from typing import Any
 
 from reportlab.graphics.shapes import Drawing, Rect, String
@@ -241,29 +244,67 @@ input_data = {
 
 }
 
-# build_nonce_timeline_pdf(input_data, outname="nonce_timeline_report.pdf")
-# print("Nonce timeline report generated: nonce_timeline_report.pdf")
 
 if __name__ == "__main__":
-    # run PDF build
+    parser = argparse.ArgumentParser(description="Nonce timeline report generator")
 
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--path", type=str, help="Path to folder containing run output")
+    group.add_argument("--run-name", type=str, help="Name of the run inside ./Reports/")
+
+    args = parser.parse_args()
+
+    # resolve final folder path
+    if args.path:
+        base_path = args.path
+    else:
+        base_path = os.path.join("Reports", args.run_name)
+
+    # verify base folder exists
+    if not os.path.isdir(base_path):
+        print(f"Error: folder not found: {base_path}")
+        sys.exit(1)
+
+    # verify expected files exist
+    shard_ids = [0, 1, 2, 4294967295]
+    missing = []
+
+    for shard in shard_ids:
+        p = os.path.join(base_path, "Shards", f"{shard}_report.json")
+        if not os.path.isfile(p):
+            missing.append(p)
+
+    miniblocks_path = os.path.join(base_path, "Miniblocks", "miniblocks_report.json")
+    if not os.path.isfile(miniblocks_path):
+        missing.append(miniblocks_path)
+
+    if missing:
+        print("Error: missing required files:")
+        for m in missing:
+            print("  -", m)
+        sys.exit(1)
+
+    # load JSONs
     headers = ShardData()
-    for shard in [0, 1, 2, 4294967295]:
-        with open(f'./Reports/cross-shard-execution-anal-9afe696daf/Shards/{shard}_report.json', 'r') as f:
+
+    for shard in shard_ids:
+        with open(os.path.join(base_path, "Shards", f"{shard}_report.json")) as f:
             data = json.load(f)
-
         headers.parsed_headers[shard] = HeaderData()
-        headers.parsed_headers[shard].header_dictionary = data['shards']
+        headers.parsed_headers[shard].header_dictionary = data["shards"]
 
-    with open('./Reports/cross-shard-execution-anal-9afe696daf/Miniblocks/miniblocks_report.json', 'r') as f:
+    with open(miniblocks_path) as f:
         data = json.load(f)
-        headers.miniblocks = data['miniblocks']
+        headers.miniblocks = data["miniblocks"]
 
+    # process
     input_data = headers.get_data_for_header_horizontal_report()
 
-    for epoch in sorted(input_data.keys()):
-        print(f"Epoch: {epoch}")
-        report_list = input_data[epoch]
+    # output path
+    out_folder = os.path.join(base_path, "NonceTimeline")
+    os.makedirs(out_folder, exist_ok=True)
 
-        build_nonce_timeline_pdf(report_list, outname=f"nonce_timeline_report_{epoch}.pdf")
-        print(f"Nonce timeline report generated: nonce_timeline_report_{epoch}.pdf")
+    for epoch in sorted(input_data.keys()):
+        outfile = os.path.join(out_folder, f"nonce_timeline_report_{epoch}.pdf")
+        build_nonce_timeline_pdf(input_data[epoch], outname=outfile)
+        print(f"Nonce timeline report for Epoch {epoch} generated: {outfile}")

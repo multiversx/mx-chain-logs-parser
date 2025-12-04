@@ -7,7 +7,9 @@ Produces miniblock timeline report PDF:
 - timeline table: columns = rounds (including gaps), each column contains stacked colored rectangles for mentions
 - colors: use mention['color'] if present, otherwise derived from mention type + reserved
 """
-
+import argparse
+import os
+import sys
 import json
 from typing import Any
 
@@ -228,14 +230,45 @@ def build_pdf_from_miniblocks(epoch: int, miniblocks: list[dict[str, Any]], outn
 
 
 if __name__ == "__main__":
-    # run PDF build
 
-    with open('./Reports/cross-shard-execution-anal-9afe696daf/Miniblocks/miniblocks_report.json', 'r') as f:
+    parser = argparse.ArgumentParser(description="Miniblock timeline detail report (CLI)")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--path", type=str, help="Path to run folder")
+    group.add_argument("--run-name", type=str, help="Name of the folder under ./Reports/")
+
+    args = parser.parse_args()
+
+    # resolve base path
+    if args.path:
+        base_path = args.path
+    else:
+        base_path = os.path.join("Reports", args.run_name)
+
+    if not os.path.isdir(base_path):
+        print(f"Error: folder not found: {base_path}")
+        sys.exit(1)
+
+    miniblocks_path = os.path.join(base_path, "Miniblocks", "miniblocks_report.json")
+    if not os.path.isfile(miniblocks_path):
+        print("Error: missing required file:")
+        print("  -", miniblocks_path)
+        sys.exit(1)
+
+    # load JSON
+    with open(miniblocks_path, "r") as f:
         data = json.load(f)
 
-    mb_data = MiniblockData(data['miniblocks']).get_data_for_detail_report()
+    # build report data the exact same way you did before
+    mb_data = MiniblockData(data["miniblocks"]).get_data_for_detail_report()
 
+    # prepare output folder (keeps reports inside the run folder)
+    out_folder = os.path.join(base_path, "MiniblocksTimelineDetail")
+    os.makedirs(out_folder, exist_ok=True)
+
+    # generate PDFs per epoch (same calls as before)
     for epoch in sorted(mb_data.keys()):
         print(f"Epoch: {epoch}")
         report_list = mb_data[epoch]
-        build_pdf_from_miniblocks(int(epoch), report_list, outname=f"miniblock_timeline_report_epoch_{epoch}.pdf")
+        outpath = os.path.join(out_folder, f"miniblock_timeline_report_epoch_{epoch}.pdf")
+        build_pdf_from_miniblocks(int(epoch), report_list, outname=outpath)
+        print(f"Miniblock timeline report generated: {outpath}")

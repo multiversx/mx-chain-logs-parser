@@ -1,5 +1,8 @@
 import json
 from typing import Any
+import argparse
+import os
+import sys
 
 from reportlab.graphics.shapes import Drawing, Rect, String
 from reportlab.lib import colors
@@ -130,10 +133,10 @@ class HFlowable(Flowable):
 # build report for one epoch
 # ----------------------------------------
 
-def build_report(epoch: int, rounds_data: dict[int, Any], shards: list[int]):
+def build_report(epoch: int, rounds_data: dict[int, Any], shards: list[int], outname: str):
 
     doc = SimpleDocTemplate(
-        f"miniblock_report_epoch_{epoch}.pdf",
+        outname,
         pagesize=A4,
         leftMargin=20, rightMargin=20, topMargin=20, bottomMargin=20
     )
@@ -179,12 +182,44 @@ def build_report(epoch: int, rounds_data: dict[int, Any], shards: list[int]):
 # ----------------------------------------
 
 if __name__ == "__main__":
-    with open('./Reports/cross-shard-execution-anal-9afe696daf/Miniblocks/miniblocks_report.json', 'r') as f:
+
+    parser = argparse.ArgumentParser(description="Miniblock shards timeline report")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--path", type=str, help="Path to run folder")
+    group.add_argument("--run-name", type=str, help="Name of the folder under ./Reports/")
+
+    args = parser.parse_args()
+
+    # resolve base path
+    if args.path:
+        base_path = args.path
+    else:
+        base_path = os.path.join("Reports", args.run_name)
+
+    if not os.path.isdir(base_path):
+        print(f"Error: folder not found: {base_path}")
+        sys.exit(1)
+
+    miniblocks_path = os.path.join(base_path, "Miniblocks", "miniblocks_report.json")
+    if not os.path.isfile(miniblocks_path):
+        print("Error: missing required file:")
+        print("  -", miniblocks_path)
+        sys.exit(1)
+
+    # load JSON
+    with open(miniblocks_path, "r") as f:
         data = json.load(f)
 
-    mb_data = MiniblockData(data['miniblocks']).get_data_for_round_report()
+    mb_data = MiniblockData(data["miniblocks"]).get_data_for_round_report()
 
+    # output folder
+    out_folder = os.path.join(base_path, "MiniblocksShardTimeline")
+    os.makedirs(out_folder, exist_ok=True)
+
+    # generate PDFs per epoch
     for epoch in sorted(mb_data.keys()):
         print(f"Epoch: {epoch}")
         report_dict = mb_data[epoch]
-        build_report(int(epoch), report_dict, shards=[0, 1, 2, 4294967295])
+        outfile = os.path.join(out_folder, f"shards_timeline_report_{epoch}.pdf")
+        build_report(int(epoch), report_dict, shards=[0, 1, 2, 4294967295], outname=outfile)
+        print("→", outfile)
