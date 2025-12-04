@@ -25,7 +25,7 @@ from reportlab.graphics.shapes import Drawing, Rect, String
 from reportlab.platypus.flowables import Flowable
 
 
-from multiversx_cross_shard_analysis.constants import COLORS_MAPPING, TYPE_NAMES
+from multiversx_cross_shard_analysis.constants import TYPE_NAMES
 
 from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
 
@@ -234,16 +234,13 @@ def build_pdf_from_miniblocks(epoch: int, miniblocks: list[dict[str, Any]], outn
     doc.build(story)
 
 
-# -----------------------------
-# Example using new tuple form: (label, info, color)
-# -----------------------------
 if __name__ == "__main__":
     # run PDF build
 
     with open('./Reports/cross-shard-execution-anal-9afe696daf/Miniblocks/miniblocks_report.json', 'r') as f:
         data = json.load(f)
 
-    mb_data = MiniblockData(list(data['miniblocks'].items())).get_data_for_detail_report()
+    mb_data = MiniblockData(data['miniblocks']).get_data_for_detail_report()
 
     for epoch in sorted(mb_data.keys()):
         print(f"Epoch: {epoch}")

@@ -185,7 +185,7 @@ if __name__ == "__main__":
     with open('./Reports/cross-shard-execution-anal-9afe696daf/Miniblocks/miniblocks_report.json', 'r') as f:
         data = json.load(f)
 
-    mb_data = MiniblockData(list(data['miniblocks'].items())).get_data_for_round_report()
+    mb_data = MiniblockData(data['miniblocks']).get_data_for_round_report()
 
     for epoch in sorted(mb_data.keys()):
         print(f"Epoch: {epoch}")

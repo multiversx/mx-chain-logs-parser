@@ -31,13 +31,18 @@ MentionType = Enum("MentionType", [
     "meta_dest_shard_committed",
 
     # miniblock is mentioned in an execution result, either on origin or destination shard
-    "exec_proposed",
-    "exec_committed",
+    "origin_exec_proposed",
+    "origin_exec_committed",
+
+    # miniblock is mentioned in an execution result, either on origin or destination shard
+    "dest_exec_proposed",
+    "dest_exec_committed",
 
     # notarization of execution results when meta includes the header containing the execution result
     "meta_exec_proposed",
     "meta_exec_committed",
 ])
+
 
 # Mappings from field number to field name for MiniBlockHeaderReserved
 FIELD_NAME_MAPPING = {
@@ -66,19 +71,30 @@ TYPE_NAMES = {
     0: "TxBlock",
     30: "StateBlock",
     60: "PeerBlock",
-    90: "SmartContractResultBlock",
+    90: "SCResultBlock",
     120: "InvalidBlock",
     150: "ReceiptBlock",
     255: "RewardsBlock",
 }
 
+Colors = Enum("Colors", [
+    "origin_proposed",
+    "origin_partial_executed",
+    "origin_final",
+    "dest_proposed",
+    "dest_partial_executed",
+    "dest_final",
+    "meta_origin_committed",
+    "meta_dest_committed",
+])
+
 COLORS_MAPPING = {
-    "origin_proposed": colors.lightyellow,
-    "origin_partial_executed": colors.orange,
-    "origin_final": colors.yellow,
-    "dest_proposed": colors.mistyrose,
-    "dest_partial_executed": colors.palevioletred,
-    "dest_final": colors.pink,
-    "meta_origin_committed": colors.lightgreen,
-    "meta_dest_committed": colors.lightblue,
+    Colors.origin_proposed: colors.lightyellow,
+    Colors.origin_partial_executed: colors.orange,
+    Colors.origin_final: colors.yellow,
+    Colors.dest_proposed: colors.mistyrose,
+    Colors.dest_partial_executed: colors.palevioletred,
+    Colors.dest_final: colors.pink,
+    Colors.meta_origin_committed: colors.lightgreen,
+    Colors.meta_dest_committed: colors.lightblue,
 }
