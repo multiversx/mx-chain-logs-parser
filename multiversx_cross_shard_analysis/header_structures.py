@@ -190,12 +190,10 @@ class ShardData:
 
                 nonce = get_value('nonce', header)
                 round_num = get_value('round', header)
-                print(f"Processing header: epoch={epoch}, shard={shard_id}, nonce={nonce}, round={round_num}")
 
                 # build result for this header (only cross-shard miniblocks)
                 result: dict[int, list] = {}
                 for miniblock in [mb for mb in get_value('miniBlockHeaders', header) if mb.get('senderShardID') == shard_id and mb.get('receiverShardID') != mb.get('senderShardID')]:
-                    print(f"  Processing miniblock: hash={miniblock.get('hash')}, senderShardID={miniblock.get('senderShardID')}, receiverShardID={miniblock.get('receiverShardID')}")
                     mb_hash = miniblock.get('hash')
                     for mention_type, metadata in self.miniblocks[mb_hash]['mentioned']:
                         # skip proposed mentions
