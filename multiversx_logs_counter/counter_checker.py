@@ -1,5 +1,6 @@
 from argparse import Namespace
 from typing import Any
+
 from multiversx_logs_parser_tools.node_logs_checker import NodeLogsChecker
 
 from .counter_parser import CounterData, CounterParser

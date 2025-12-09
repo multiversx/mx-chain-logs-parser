@@ -1,5 +1,6 @@
 from re import Pattern
 from typing import Any
+
 from multiversx_logs_parser_tools.aho_corasik_parser import AhoCorasickParser
 
 from .counter_structures import CounterData
