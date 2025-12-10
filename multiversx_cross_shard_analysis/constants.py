@@ -39,9 +39,13 @@ MentionType = Enum("MentionType", [
     "dest_exec_proposed",
     "dest_exec_committed",
 
-    # notarization of execution results when meta includes the header containing the execution result
-    "meta_exec_proposed",
-    "meta_exec_committed",
+    # notarization of execution results when meta includes the header containing the execution result for origin shard
+    "meta_origin_exec_proposed",
+    "meta_origin_exec_committed",
+
+    # notarization of execution results when meta includes the header containing the execution result for destination shard
+    "meta_dest_exec_proposed",
+    "meta_dest_exec_committed",
 ])
 
 
@@ -87,6 +91,14 @@ Colors = Enum("Colors", [
     "dest_final",
     "meta_origin_committed",
     "meta_dest_committed",
+    "origin_exec_proposed",
+    "origin_exec_partial_executed",
+    "origin_exec_final",
+    "dest_exec_proposed",
+    "dest_exec_partial_executed",
+    "dest_exec_final",
+    "meta_origin_exec_committed",
+    "meta_dest_exec_committed",
 ])
 
 COLORS_MAPPING = {
@@ -98,4 +110,12 @@ COLORS_MAPPING = {
     Colors.dest_final: colors.pink,
     Colors.meta_origin_committed: colors.lightgreen,
     Colors.meta_dest_committed: colors.lightblue,
+    Colors.origin_exec_proposed: colors.khaki,
+    Colors.origin_exec_partial_executed: colors.gold,
+    Colors.origin_exec_final: colors.darkgoldenrod,
+    Colors.dest_exec_proposed: colors.lightcoral,
+    Colors.dest_exec_partial_executed: colors.crimson,
+    Colors.dest_exec_final: colors.firebrick,
+    Colors.meta_origin_exec_committed: colors.mediumseagreen,
+    Colors.meta_dest_exec_committed: colors.cornflowerblue,
 }

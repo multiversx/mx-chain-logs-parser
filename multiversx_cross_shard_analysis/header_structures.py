@@ -230,6 +230,10 @@ class Header:
         self.metadata: dict[str, Any] = self.get_header_metadata(header)
         self.miniblocks: list[tuple[str, dict[str, Any]]] = self.get_miniblocks(header, status)
 
+    # returns 'origin' or 'dest' based on miniblock senderShardID
+    def get_miniblock_shard_type(self, miniblock_shard_id: int) -> str:
+        return 'origin_shard' if self.metadata["shard_id"] == miniblock_shard_id else "dest_shard"
+
     def get_header_metadata(self, header: dict[str, Any]) -> dict[str, Any]:
         if Header.isHeaderV2(header):
             header = header['header']
@@ -241,12 +245,11 @@ class Header:
         }
 
     def get_miniblocks(self, header: dict[str, Any], status: str) -> list[tuple[str, dict[str, Any]]]:
-        metadata = self.metadata
         miniblocks = []
         if Header.isHeaderV2(header):
             header = header['header']
         for miniblock in header.get('miniBlockHeaders', []):
-            miniblock_mention = f'{origin_shard if metadata['shard_id'] == miniblock['senderShardID'] else dest_shard}_{status}'
+            miniblock_mention = self.get_miniblock_shard_type(miniblock["senderShardID"]) + f'_{status}'
             miniblocks.append((miniblock_mention, miniblock))
         if Header.isMetaHeader(header):
             for shard_header in header['shardInfo']:
@@ -254,6 +257,17 @@ class Header:
                 for miniblock in shard_header.get('shardMiniBlockHeaders', []):
                     miniblock_mention = f'{meta}_{origin_shard if shard_metadata['shard_id'] == miniblock['senderShardID'] else dest_shard}_{status}'
                     miniblocks.append((miniblock_mention, miniblock))
+                if Header.isMetaHeaderV3(header):
+                    for exec_result in shard_header.get('executionResults', []):
+                        for miniblock in exec_result.get('miniBlockHeaders', []):
+                            miniblock_mention = f'{meta}_{origin_shard if shard_metadata["shard_id"] == miniblock["senderShardID"] else dest_shard}_exec_{status}'
+                            miniblocks.append((miniblock_mention, miniblock))
+        if Header.isHeaderV3(header):
+            for exec_result in header['executionResults']:
+                for miniblock in exec_result.get('miniBlockHeaders', []):
+                    miniblock_mention = self.get_miniblock_shard_type(miniblock["senderShardID"]) + f'_{status}_exec'
+                    miniblocks.append((miniblock_mention, miniblock))
+
         return miniblocks
 
     @staticmethod

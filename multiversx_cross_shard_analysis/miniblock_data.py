@@ -15,18 +15,32 @@ class MiniblockData:
         if reserved == {}:
             reserved = get_default_decoded_data(tx_count=tx_count)
             if "meta" in mention_type:
-                color = Colors.meta_origin_committed if mention_type.startswith('meta_origin') else Colors.meta_dest_committed
+                if 'exec' in mention_type:
+                    color = Colors.meta_origin_exec_committed if mention_type.startswith('meta_origin') else Colors.meta_dest_exec_committed
+                else:
+                    color = Colors.meta_origin_committed if mention_type.startswith('meta_origin') else Colors.meta_dest_committed
             else:
-                color = Colors.origin_final if mention_type.startswith('origin') else Colors.dest_final
+                if 'exec' in mention_type:
+                    color = Colors.origin_exec_final if mention_type.startswith('origin') else Colors.dest_exec_final
+                else:
+                    color = Colors.origin_final if mention_type.startswith('origin') else Colors.dest_final
         else:
             # execution_type = header.get('reserved', {}).get('ExecutionType', '')
             state = header.get('reserved', {}).get('State', '')
-            if state == 'Proposed':
-                color = Colors.origin_proposed if mention_type.startswith('origin') else Colors.dest_proposed
-            elif state == 'PartialExecuted':
-                color = Colors.origin_partial_executed if mention_type.startswith('origin') else Colors.dest_partial_executed
+            if 'exec' in mention_type:
+                if state == 'Proposed':
+                    color = Colors.origin_exec_proposed if mention_type.startswith('origin') else Colors.dest_exec_proposed
+                elif state == 'PartialExecuted':
+                    color = Colors.origin_exec_partial_executed if mention_type.startswith('origin') else Colors.dest_exec_partial_executed
+                else:
+                    color = Colors.origin_exec_final if mention_type.startswith('origin') else Colors.dest_exec_final
             else:
-                color = Colors.origin_final if mention_type.startswith('origin') else Colors.dest_final
+                if state == 'Proposed':
+                    color = Colors.origin_proposed if mention_type.startswith('origin') else Colors.dest_proposed
+                elif state == 'PartialExecuted':
+                    color = Colors.origin_partial_executed if mention_type.startswith('origin') else Colors.dest_partial_executed
+                else:
+                    color = Colors.origin_final if mention_type.startswith('origin') else Colors.dest_final
         return color
 
     def get_data_for_round_report(self) -> dict[str, Any]:
