@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta
 import os
+from datetime import datetime, timedelta
 
+from multiversx_cross_shard_analysis.headers_timeline_report import \
+    build_nonce_timeline_pdf
 from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
-
-from multiversx_cross_shard_analysis.miniblocks_round_report import build_report
-
-from multiversx_cross_shard_analysis.miniblocks_timeline_report import build_pdf_from_miniblocks
-
-from multiversx_cross_shard_analysis.headers_timeline_report import build_nonce_timeline_pdf
+from multiversx_cross_shard_analysis.miniblocks_round_report import \
+    build_report
+from multiversx_cross_shard_analysis.miniblocks_timeline_report import \
+    build_pdf_from_miniblocks
 
 from .header_analysis_archive_handler import HeaderAnalysisArchiveHandler
 from .header_analysis_checker import HeaderAnalysisChecker

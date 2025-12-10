@@ -1,8 +1,8 @@
-import json
-from typing import Any
 import argparse
+import json
 import os
 import sys
+from typing import Any
 
 from reportlab.graphics.shapes import Drawing, Rect, String
 from reportlab.lib import colors

@@ -8,9 +8,9 @@ Produces miniblock timeline report PDF:
 - colors: use mention['color'] if present, otherwise derived from mention type + reserved
 """
 import argparse
+import json
 import os
 import sys
-import json
 from typing import Any
 
 from reportlab.graphics.shapes import Drawing, Rect, String
