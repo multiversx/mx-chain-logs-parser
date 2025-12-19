@@ -229,7 +229,7 @@ def build_pdf_from_miniblocks(epoch: int, miniblocks: list[dict[str, Any]], outn
     doc.build(story)
 
 
-if __name__ == "__main__":
+def main():
 
     parser = argparse.ArgumentParser(description="Miniblock timeline detail report (CLI)")
     group = parser.add_mutually_exclusive_group(required=True)
@@ -272,3 +272,7 @@ if __name__ == "__main__":
         outpath = os.path.join(out_folder, f"miniblock_timeline_report_epoch_{epoch}.pdf")
         build_pdf_from_miniblocks(int(epoch), report_list, outname=outpath)
         print(f"Miniblock timeline report generated: {outpath}")
+
+
+if __name__ == "__main__":
+    main()

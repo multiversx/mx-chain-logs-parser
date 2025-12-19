@@ -26,6 +26,7 @@ def gather_data():
     # Generate reports
     mb_data = MiniblockData(handler.shard_data.miniblocks).get_data_for_round_report()
     out_folder = os.path.join(handler.run_name, "MiniblocksShardTimeline")
+    out_folder = os.path.join('Reports', out_folder)
     os.makedirs(out_folder, exist_ok=True)
 
     # generate PDFs per epoch
@@ -38,6 +39,7 @@ def gather_data():
 
     mb_data = MiniblockData(handler.shard_data.miniblocks).get_data_for_detail_report()
     out_folder = os.path.join(handler.run_name, "MiniblocksTimelineDetail")
+    out_folder = os.path.join('Reports', out_folder)
     os.makedirs(out_folder, exist_ok=True)
 
     for epoch in sorted(mb_data.keys()):
@@ -48,6 +50,7 @@ def gather_data():
 
     input_data = handler.shard_data.get_data_for_header_horizontal_report()
     out_folder = os.path.join(handler.run_name, "NonceTimeline")
+    out_folder = os.path.join('Reports', out_folder)
     os.makedirs(out_folder, exist_ok=True)
 
     for epoch in sorted(input_data.keys()):

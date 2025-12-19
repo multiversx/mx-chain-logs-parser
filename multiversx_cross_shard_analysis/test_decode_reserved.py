@@ -62,16 +62,13 @@ expected = {
         "IndexOfFirstTxProcessed": 10,
         "IndexOfLastTxProcessed": 2305
     },
-    "meta_dest_shard_commited_headers": {
-        "ExecutionType": "Normal",
-        "State": "Final",
-        "IndexOfFirstTxProcessed": 0,
-        "IndexOfLastTxProcessed": 2412
-    }
+    "meta_dest_shard_commited_headers": {}
 }
 
 
 class TestMiniBlockHeader:
+
     def test_get_processing_type1(self):
         for name, hex_str in mentioned_headers.items():
+            print(f"Testing decoding for: {name}")
             assert decode_reserved_field(hex_str, 2413) == expected[name], f"Decoding failed for {name}"

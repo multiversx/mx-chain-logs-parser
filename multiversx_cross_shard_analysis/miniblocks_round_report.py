@@ -180,9 +180,7 @@ def build_report(epoch: int, rounds_data: dict[int, Any], shards: list[int], out
 # ----------------------------------------
 # main
 # ----------------------------------------
-
-if __name__ == "__main__":
-
+def main():
     parser = argparse.ArgumentParser(description="Miniblock shards timeline report")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--path", type=str, help="Path to run folder")
@@ -223,3 +221,7 @@ if __name__ == "__main__":
         outfile = os.path.join(out_folder, f"shards_timeline_report_{epoch}.pdf")
         build_report(int(epoch), report_dict, shards=[0, 1, 2, 4294967295], outname=outfile)
         print("→", outfile)
+
+
+if __name__ == "__main__":
+    main()

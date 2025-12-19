@@ -1,6 +1,7 @@
+from enum import Enum
 from typing import Any
 
-from multiversx_cross_shard_analysis.constants import COLORS_MAPPING, Colors
+from multiversx_cross_shard_analysis.constants import COLORS_MAPPING, TYPE_NAMES, Colors
 from multiversx_cross_shard_analysis.decode_reserved import \
     get_default_decoded_data
 
@@ -9,6 +10,24 @@ class MiniblockData:
 
     def __init__(self, miniblocks: dict[str, dict[str, Any]]):
         self.miniblocks = miniblocks
+        self.verify_miniblocks()
+
+    def verify_miniblocks(self) -> None:
+        for mb_hash, mb_info in self.miniblocks.items():
+            mb_info['hasAlarm'] = False
+            mb_info['mentioned'] = sorted(mb_info.get('mentioned', []), key=lambda x: (x[1].get('epoch', 0), x[1].get('round', 0)))
+            last_round = -1
+            for mention_type, header in mb_info.get('mentioned', []):
+                if last_round == -1:
+                    mb_info['first_seen_round'] = header.get('round')
+                    mb_info['last_seen_round'] = header.get('round')
+                    mb_info['first_seen_epoch'] = header.get('epoch')
+                    mb_info['nonce'] = header.get('nonce')
+                    mb_info['senderShardID'] = header.get('shard_id')
+                elif header.get('round') - last_round > 1:
+                    mb_info['hasAlarm'] = True
+                last_round = header.get('round')
+                mb_info['last_seen_round'] = last_round
 
     def get_color_for_state(self, mention_type: str, tx_count: int, header: dict[str, Any]) -> Colors:
         reserved = header.get('reserved', {})
@@ -67,8 +86,6 @@ class MiniblockData:
     def get_data_for_detail_report(self) -> dict[str, list[dict[str, Any]]]:
         report = {}
         for mb_hash, mb_info in self.miniblocks.items():
-            if mb_info['senderShardID'] == mb_info['receiverShardID']:
-                continue  # Skip same-shard miniblocks
             origin_epoch = None
 
             mb_data = {
@@ -108,4 +125,42 @@ class MiniblockData:
 
         for epoch, mb_list in report.items():
             mb_list.sort(key=lambda x: x['first_seen_round'])
+        return report
+
+    def get_data_for_header_report(self) -> dict[int, dict[int, Any]]:
+        report: dict[int, dict[int, Any]] = {}
+
+        for mb_hash, mb_info in self.miniblocks.items():
+            nonce = mb_info['nonce']
+            shard_id = mb_info['senderShardID']
+            epoch = mb_info['first_seen_epoch']
+            for mention_type, header in mb_info.get('mentioned', []):
+                if "proposed" in mention_type:
+                    continue
+
+                print(f"Processing miniblock {mb_hash} mentioned in header nonce {header.get('nonce')} round {header.get('round')} epoch {header.get('epoch')} shard {header.get('shard_id')}")
+                # epoch = header.get('epoch')
+                if epoch not in report:
+                    report[epoch] = {}
+
+                if shard_id not in report[epoch]:
+                    report[epoch][shard_id] = {}
+
+                if nonce not in report[epoch][shard_id]:
+                    report[epoch][shard_id][nonce] = {}
+
+                round_number = header.get('round')
+                if round_number not in report[epoch][shard_id][nonce]:
+                    report[epoch][shard_id][nonce][round_number] = []
+
+                color = COLORS_MAPPING[self.get_color_for_state(mention_type, mb_info['txCount'], header)]
+                label = f'Shard {header["shard_id"]}' if header["shard_id"] != 4294967295 else "MetaShard"
+                if mb_info['type'] != 0:
+                    label += f' ({TYPE_NAMES[mb_info["type"]]})'
+
+                report[epoch][shard_id][nonce][round_number].append((label, mb_hash[:15] + '...', color))
+
+        with open('debug_miniblock_header_report.json', 'w') as f:
+            import json
+            json.dump(report, f, indent=4, default=lambda o: o.name if isinstance(o, Enum) else str(o))
         return report

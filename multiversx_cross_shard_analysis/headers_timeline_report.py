@@ -9,11 +9,13 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (Flowable, PageBreak, Paragraph,
-                                SimpleDocTemplate, Spacer, Table, TableStyle)
+                                SimpleDocTemplate, Spacer, LongTable, TableStyle)
 
 from multiversx_cross_shard_analysis.constants import COLORS_MAPPING, Colors
 from multiversx_cross_shard_analysis.header_structures import (HeaderData,
                                                                ShardData)
+
+from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
 
 # -----------------------------
 # CONFIG (mirrors miniblock report)
@@ -38,32 +40,35 @@ TITLE_HEIGHT = 60
 # build stacked rectangles (same as miniblock version)
 # -----------------------------
 
-def build_stack_for_round(items: list[tuple[str, str, colors.Color]], col_width: float) -> Drawing:
-    rows = max(1, len(items))
-    total_h = rows * RECT_H
-    d = Drawing(col_width, total_h)
-
-    y = total_h - RECT_H
-    for label, info, col in items:
-        rect_w = max(2, col_width - RECT_PADDING_X * 2) - 4
-
-        d.add(Rect(0, y + 2, rect_w, RECT_H - 4, fillColor=col, strokeColor=colors.black))  # type: ignore
-
-        text_x = RECT_PADDING_X + 3
-        base_y = y + 4
-
-        d.add(String(text_x, base_y + 8, label, fontSize=RECT_LABEL_FONT))
-        d.add(String(text_x, base_y, info, fontSize=RECT_INFO_FONT))
-
-        y -= RECT_H
+def build_stack_rows(items: list[tuple[str, str, colors.Color]], col_width: float) -> list[Drawing]:
+    """
+    Instead of one giant Drawing, we return a list of small ones.
+    Each drawing represents one row in the vertical stack.
+    """
+    row_drawings = []
 
     if len(items) == 0:
+        # Create a single "no data" row
+        d = Drawing(col_width, RECT_H)
         rect_w = max(2, col_width - RECT_PADDING_X * 2) - 4
-        mid = total_h / 2
-        d.add(Rect(0, mid - 6, rect_w, 12, fillColor=colors.whitesmoke, strokeColor=colors.grey))   # type: ignore
-        d.add(String(RECT_PADDING_X + 2, mid - 2, "no data", fontSize=RECT_LABEL_FONT))
+        d.add(Rect(0, 2, rect_w, 12, fillColor=colors.whitesmoke, strokeColor=colors.grey))  # type: ignore
+        d.add(String(RECT_PADDING_X + 2, 6, "no data", fontSize=RECT_LABEL_FONT))
+        row_drawings.append(d)
+        return row_drawings
 
-    return d
+    for label, info, col in items:
+        # Create a small drawing for just this one item
+        d = Drawing(col_width, RECT_H)
+        rect_w = max(2, col_width - RECT_PADDING_X * 2) - 4
+
+        d.add(Rect(0, 2, rect_w, RECT_H - 4, fillColor=col, strokeColor=colors.black))  # type: ignore
+
+        text_x = RECT_PADDING_X + 3
+        d.add(String(text_x, 12, label, fontSize=RECT_LABEL_FONT))
+        d.add(String(text_x, 4, info, fontSize=RECT_INFO_FONT))
+        row_drawings.append(d)
+
+    return row_drawings
 
 # -----------------------------
 # check for round gaps
@@ -96,18 +101,31 @@ def build_nonce_section(shard_id: int, nonce: int, rounds: list[int], data: dict
     num_cols = len(rounds)
     col_width = usable_width / max(1, num_cols)
 
+    # 1. Build the Header Row
     header = [Paragraph(f"<b>{r}</b>", styles["BodyText"]) for r in rounds]
 
-    cells = []
-    for r in rounds:
-        items = data.get(r, [])
-        drawing = build_stack_for_round(items, col_width)
-        cells.append(drawing)
+    # 2. Transpose the stacks into rows
+    # We need to find the max height among all columns to normalize the row count
+    column_stacks = [build_stack_rows(data.get(r, []), col_width) for r in rounds]
+    max_rows = max(len(stack) for stack in column_stacks)
 
-    tbl = Table(
-        [header, cells],
+    table_data = [header]
+
+    # Fill the table row by row
+    for i in range(max_rows):
+        row = []
+        for stack in column_stacks:
+            if i < len(stack):
+                row.append(stack[i])
+            else:
+                row.append("")  # Empty cell if this column has fewer items
+        table_data.append(row)
+
+    tbl = LongTable(
+        table_data,
         colWidths=[col_width] * num_cols,
         hAlign="LEFT",
+        splitByRow=True,  # This allows the table to break across pages between rows
     )
 
     tbl_style = [
@@ -115,10 +133,11 @@ def build_nonce_section(shard_id: int, nonce: int, rounds: list[int], data: dict
         ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
         ("ALIGN", (0, 0), (-1, 0), "CENTER"),
         ("VALIGN", (0, 1), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 0),  # Tighten padding for large lists
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
         ("FONTSIZE", (0, 0), (-1, 0), ROUND_HEADER_FONT),
     ]
 
-    # add red border if highlighted
     if highlight:
         tbl_style.append(("BOX", (0, 0), (-1, -1), 2, colors.red))
 
@@ -245,7 +264,8 @@ input_data = {
 }
 
 
-if __name__ == "__main__":
+def main():
+
     parser = argparse.ArgumentParser(description="Nonce timeline report generator")
 
     group = parser.add_mutually_exclusive_group(required=True)
@@ -298,7 +318,7 @@ if __name__ == "__main__":
         headers.miniblocks = data["miniblocks"]
 
     # process
-    input_data = headers.get_data_for_header_horizontal_report()
+    input_data = MiniblockData(headers.miniblocks).get_data_for_header_report()
 
     # output path
     out_folder = os.path.join(base_path, "NonceTimeline")
@@ -308,3 +328,7 @@ if __name__ == "__main__":
         outfile = os.path.join(out_folder, f"nonce_timeline_report_{epoch}.pdf")
         build_nonce_timeline_pdf(input_data[epoch], outname=outfile)
         print(f"Nonce timeline report for Epoch {epoch} generated: {outfile}")
+
+
+if __name__ == "__main__":
+    main()
