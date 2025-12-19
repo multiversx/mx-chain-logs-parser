@@ -138,8 +138,6 @@ class MiniblockData:
                 if "proposed" in mention_type:
                     continue
 
-                print(f"Processing miniblock {mb_hash} mentioned in header nonce {header.get('nonce')} round {header.get('round')} epoch {header.get('epoch')} shard {header.get('shard_id')}")
-                # epoch = header.get('epoch')
                 if epoch not in report:
                     report[epoch] = {}
 
@@ -160,7 +158,30 @@ class MiniblockData:
 
                 report[epoch][shard_id][nonce][round_number].append((label, mb_hash[:15] + '...', color))
 
-        with open('debug_miniblock_header_report.json', 'w') as f:
-            import json
-            json.dump(report, f, indent=4, default=lambda o: o.name if isinstance(o, Enum) else str(o))
-        return report
+        return sort_report(report)
+
+
+def sort_report(report: dict[int, dict[int, Any]]) -> dict[int, dict[int, Any]]:
+    out: dict[int, dict[int, Any]] = {}
+
+    for epoch in sorted(report.keys()):
+        out[epoch] = {}
+
+        # metas hard (4294967295) last
+        shard_ids = sorted(
+            report[epoch].keys(),
+            key=lambda s: (s == 4294967295, s),
+        )
+
+        for shard_id in shard_ids:
+            out[epoch][shard_id] = {}
+
+            for nonce in sorted(report[epoch][shard_id].keys()):
+                rounds = report[epoch][shard_id][nonce]
+
+                out[epoch][shard_id][nonce] = {
+                    r: rounds[r]
+                    for r in sorted(rounds.keys())
+                }
+
+    return out

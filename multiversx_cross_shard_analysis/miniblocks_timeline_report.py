@@ -123,6 +123,15 @@ def build_stack_for_round(items: list[tuple[str, str, colors.Color]], col_width:
 # -----------------------------
 # miniblock section
 # -----------------------------
+def has_round_gap(rounds: list[int]) -> bool:
+    if len(rounds) < 2:
+        return False
+    for a, b in zip(rounds, rounds[1:]):
+        if b != a + 1:
+            return True
+    return False
+
+
 def build_miniblock_section(miniblock: dict[str, Any], page_usable_width: float) -> list[Flowable]:
     flow = []
     styles = getSampleStyleSheet()
@@ -143,9 +152,8 @@ def build_miniblock_section(miniblock: dict[str, Any], page_usable_width: float)
         flow.append(Spacer(1, 6))
         return flow
 
-    first_r = miniblock.get("first_seen_round", 0)
-    last_r = miniblock.get("last_seen_round", 0)
-    rounds = list(range(first_r, last_r + 1))
+    mentioned = miniblock.get("mentioned", {})
+    rounds = sorted(mentioned.keys())
 
     num_cols = max(1, len(rounds))
     col_width = page_usable_width / num_cols
@@ -160,6 +168,7 @@ def build_miniblock_section(miniblock: dict[str, Any], page_usable_width: float)
         items = mentioned.get(r, [])
         drawing = build_stack_for_round(items, col_width)
         cells.append(drawing)
+    gap = has_round_gap(rounds)
 
     tbl = Table(
         [header, cells],
@@ -167,17 +176,18 @@ def build_miniblock_section(miniblock: dict[str, Any], page_usable_width: float)
         hAlign="LEFT",
     )
 
-    tbl.setStyle(
-        TableStyle(
-            [
-                ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
-                ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
-                ("FONTSIZE", (0, 0), (-1, 0), ROUND_HEADER_FONT),
-                ("VALIGN", (0, 1), (-1, -1), "TOP"),
-            ]
-        )
-    )
+    style = [
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+        ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
+        ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+        ("FONTSIZE", (0, 0), (-1, 0), ROUND_HEADER_FONT),
+        ("VALIGN", (0, 1), (-1, -1), "TOP"),
+    ]
+
+    if gap:
+        style.append(("BOX", (0, 0), (-1, -1), 2, colors.red))
+
+    tbl.setStyle(TableStyle(style))
 
     flow.append(tbl)
     flow.append(Spacer(1, 8))
