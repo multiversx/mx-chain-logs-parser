@@ -1,7 +1,9 @@
-from enum import Enum
 import json
-from multiversx_cross_shard_analysis.header_structures import Header, HeaderData, ShardData
+from enum import Enum
 
+from multiversx_cross_shard_analysis.header_structures import (Header,
+                                                               HeaderData,
+                                                               ShardData)
 from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
 
 header = {
@@ -47,9 +49,9 @@ header = {
             "hash": "52af8b3c899198e823ef94c80fc12cc4ba301e005d8e67f615ba872226a4963c",
             "receiverShardID": 0,
             "reserved": "1001",
-                        "senderShardID": 0,
-                        "txCount": 809,
-                        "type": 0
+            "senderShardID": 0,
+            "txCount": 809,
+            "type": 0
         }
     ],
     "nonce": 1648,
@@ -141,14 +143,14 @@ header_exec_result = {
 class TestMiniBlockHeader:
     def test_header_data(self):
         header_data = HeaderData()
-        header_data.add_commited_header(header_exec_result)
-        assert header_data.header_dictionary['commited_headers'][0] == header_exec_result
+        header_data.add_committed_header(header_exec_result)
+        assert header_data.header_dictionary['committed_headers'][0] == header_exec_result
 
         header_data.add_proposed_header(header_exec_result)
         assert header_data.header_dictionary['proposed_headers'][0] == header_exec_result
 
     def test_header(self):
-        header_instance = Header(header_exec_result, 'commited')
+        header_instance = Header(header_exec_result, 'committed')
         assert header_instance.metadata['epoch'] == 2
         assert header_instance.metadata['round'] == 1649
         assert header_instance.metadata['shard_id'] == 0
@@ -157,31 +159,31 @@ class TestMiniBlockHeader:
         assert len(header_instance.miniblocks) == 2
 
         for mention_type, miniblock, metadata in header_instance.miniblocks:
-            assert mention_type in ["origin_shard_commited", "origin_shard_commited_exec"]
-            if mention_type == "origin_shard_commited":
+            assert mention_type in ["origin_shard_committed", "origin_shard_committed_exec"]
+            if mention_type == "origin_shard_committed":
                 assert miniblock['hash'] == "994ceb37eb426a123501928c8c5b67e59f607557fb5f332d5e55fd297ab5d870"
                 assert metadata['nonce'] == 1649
-            elif mention_type == "origin_shard_commited_exec":
+            elif mention_type == "origin_shard_committed_exec":
                 assert miniblock['hash'] == "4df428a4f8c34e62382d7bdbec08749188049959131c2acbd514edff1890b28e"
                 assert metadata['nonce'] == 1648
 
     def test_shard_data(self):
         header_data = HeaderData()
-        header_data.add_commited_header(header_exec_result)
+        header_data.add_committed_header(header_exec_result)
         header_data.add_proposed_header(header_exec_result)
         shard_data = ShardData()
         shard_data.add_node(header_data)
-        assert shard_data.parsed_headers[0].header_dictionary['commited_headers'][0] == header_exec_result
+        assert shard_data.parsed_headers[0].header_dictionary['committed_headers'][0] == header_exec_result
         assert shard_data.parsed_headers[0].header_dictionary['proposed_headers'][0] == header_exec_result
         assert len(shard_data.miniblocks) == 2  # two miniblocks in the header
 
     def test_nonce_timeline(self):
         header_data = HeaderData()
 
-        header_data.add_commited_header(header)
+        header_data.add_committed_header(header)
         header_data.add_proposed_header(header)
 
-        header_data.add_commited_header(header_exec_result)
+        header_data.add_committed_header(header_exec_result)
         header_data.add_proposed_header(header_exec_result)
 
         shard_data = ShardData()
@@ -199,10 +201,10 @@ class TestMiniBlockHeader:
     def test_nonce_timeline_new(self):
         header_data = HeaderData()
 
-        header_data.add_commited_header(header)
+        header_data.add_committed_header(header)
         header_data.add_proposed_header(header)
 
-        header_data.add_commited_header(header_exec_result)
+        header_data.add_committed_header(header_exec_result)
         header_data.add_proposed_header(header_exec_result)
 
         shard_data = ShardData()
@@ -220,10 +222,10 @@ class TestMiniBlockHeader:
     def test_miniblock_data_verify(self):
         header_data = HeaderData()
 
-        header_data.add_commited_header(header)
+        header_data.add_committed_header(header)
         header_data.add_proposed_header(header)
 
-        header_data.add_commited_header(header_exec_result)
+        header_data.add_committed_header(header_exec_result)
         header_data.add_proposed_header(header_exec_result)
 
         shard_data = ShardData()

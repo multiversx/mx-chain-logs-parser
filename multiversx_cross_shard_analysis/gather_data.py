@@ -48,7 +48,7 @@ def gather_data():
         build_pdf_from_miniblocks(int(epoch), mb_data[epoch], outname=outfile)
         print("→", outfile)
 
-    input_data = handler.shard_data.get_data_for_header_horizontal_report()
+    input_data, nonce_alarms = MiniblockData(handler.shard_data.miniblocks).get_data_for_header_report()
     out_folder = os.path.join(handler.run_name, "NonceTimeline")
     out_folder = os.path.join('Reports', out_folder)
     os.makedirs(out_folder, exist_ok=True)
@@ -56,7 +56,7 @@ def gather_data():
     for epoch in sorted(input_data.keys()):
         print(f"Epoch: {epoch}")
         outfile = os.path.join(out_folder, f"nonce_timeline_report_{epoch}.pdf")
-        build_nonce_timeline_pdf(input_data[epoch], outname=outfile)
+        build_nonce_timeline_pdf(input_data[epoch], nonce_alarms, outname=outfile)
         print("→", outfile)
 
 

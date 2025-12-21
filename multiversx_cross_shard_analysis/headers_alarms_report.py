@@ -151,9 +151,8 @@ def build_nonce_section(shard_id: int, nonce: int, rounds: list[int], data: dict
 # PDF builder
 # -----------------------------
 
-def build_nonce_timeline_pdf(shards_data: dict[int, dict[int, dict[int, list[Any]]]],
-                             nonce_alarms: dict[int, set[int]],
-                             outname="nonce_timeline.pdf"):
+def build_nonce_timeline_pdf(alarm_data: dict[str, dict[int, dict[int, dict[int, list[Any]]]]],
+                             outname="nonce_alarms.pdf"):
     doc = SimpleDocTemplate(
         outname,
         pagesize=A4,
@@ -168,29 +167,34 @@ def build_nonce_timeline_pdf(shards_data: dict[int, dict[int, dict[int, list[Any
 
     styles = getSampleStyleSheet()
     story = []
-    story.append(Paragraph("<b>Nonce Timeline Report</b>", styles["Title"]))
+    story.append(Paragraph("<b>Nonce Alarms Report</b>", styles["Title"]))
     story.append(Spacer(1, 10))
 
     current_h = 0
     first_page = True
+    for alarm, shards_data in alarm_data.items():
+        if not shards_data:
+            continue
+        story.append(Paragraph(f"<b>Alarm: {alarm}</b>", styles["Heading2"]))
+        story.append(Spacer(1, 6))
+        current_h += 36  # approx height of heading + spacer
 
-    for shard_id, shard_dict in shards_data.items():
-        for nonce, rdata in sorted(shard_dict.items()):
-            # height estimate based on max stack height
-            max_stack = max((len(v) for v in rdata.values()), default=1)
-            h_needed = SECTION_BASE_HEIGHT + max(0, max_stack - 2) * EXTRA_LINE_HEIGHT
+        for shard_id, shard_dict in shards_data.items():
+            for nonce, rdata in sorted(shard_dict.items()):
+                # height estimate based on max stack height
+                max_stack = max((len(v) for v in rdata.values()), default=1)
+                h_needed = SECTION_BASE_HEIGHT + max(0, max_stack - 2) * EXTRA_LINE_HEIGHT
 
-            effective_page_height = MAX_H - (TITLE_HEIGHT if first_page else 0)
+                effective_page_height = MAX_H - (TITLE_HEIGHT if first_page else 0)
 
-            if current_h + h_needed > effective_page_height:
-                story.append(PageBreak())
-                current_h = 0
-                first_page = False
+                if current_h + h_needed > effective_page_height:
+                    story.append(PageBreak())
+                    current_h = 0
+                    first_page = False
 
-            round_list = list(rdata.keys())
-            alarm = nonce in nonce_alarms[shard_id]
-            story.extend(build_nonce_section(shard_id, nonce, round_list, rdata, usable_width, alarm))
-            current_h += h_needed
+                round_list = list(rdata.keys())
+                story.extend(build_nonce_section(shard_id, nonce, round_list, rdata, usable_width))
+                current_h += h_needed
 
     doc.build(story)
 
@@ -266,7 +270,7 @@ input_data = {
 
 def main():
 
-    parser = argparse.ArgumentParser(description="Nonce timeline report generator")
+    parser = argparse.ArgumentParser(description="Nonce timeline alarms report generator")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--path", type=str, help="Path to folder containing run output")
@@ -318,16 +322,16 @@ def main():
         headers.miniblocks = data["miniblocks"]
 
     # process
-    input_data, nonce_alarms = MiniblockData(headers.miniblocks).get_data_for_header_report()
+    input_data = MiniblockData(headers.miniblocks).get_data_for_header_alarms_report()
 
     # output path
-    out_folder = os.path.join(base_path, "NonceTimeline")
+    out_folder = os.path.join(base_path, "NonceAlarms")
     os.makedirs(out_folder, exist_ok=True)
 
     for epoch in sorted(input_data.keys()):
-        outfile = os.path.join(out_folder, f"nonce_timeline_report_{epoch}.pdf")
-        build_nonce_timeline_pdf(input_data[epoch], nonce_alarms, outname=outfile)
-        print(f"Nonce timeline report for Epoch {epoch} generated: {outfile}")
+        outfile = os.path.join(out_folder, f"nonce_alarms_report_{epoch}.pdf")
+        build_nonce_timeline_pdf(input_data[epoch], outname=outfile)
+        print(f"Nonce alarms report for Epoch {epoch} generated: {outfile}")
 
 
 if __name__ == "__main__":

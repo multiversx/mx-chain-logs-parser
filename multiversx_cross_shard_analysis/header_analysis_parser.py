@@ -32,7 +32,7 @@ class HeaderAnalysisParser(AhoCorasickParser):
             if pattern_idx < 2:
                 self.parsed_headers.add_proposed_header(header)
             elif pattern_idx == 2:
-                self.parsed_headers.add_commited_header(header)
+                self.parsed_headers.add_committed_header(header)
 
         return {}
 

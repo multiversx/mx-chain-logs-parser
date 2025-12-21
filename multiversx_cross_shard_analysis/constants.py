@@ -19,6 +19,10 @@ MentionType = Enum("MentionType", [
     "origin_shard_proposed",
     "origin_shard_committed",
 
+    # miniblock is mentioned in an execution result, either on origin or destination shard
+    "origin_exec_proposed",
+    "origin_exec_committed",
+
     # notarization of shard miniblock when meta includes the shard header
     "meta_origin_shard_proposed",
     "meta_origin_shard_committed",
@@ -27,17 +31,13 @@ MentionType = Enum("MentionType", [
     "dest_shard_proposed",
     "dest_shard_committed",
 
-    # notarization of shard miniblock when meta includes the shard header
-    "meta_dest_shard_proposed",
-    "meta_dest_shard_committed",
-
-    # miniblock is mentioned in an execution result, either on origin or destination shard
-    "origin_exec_proposed",
-    "origin_exec_committed",
-
     # miniblock is mentioned in an execution result, either on origin or destination shard
     "dest_exec_proposed",
     "dest_exec_committed",
+
+    # notarization of shard miniblock when meta includes the shard header
+    "meta_dest_shard_proposed",
+    "meta_dest_shard_committed",
 
     # notarization of execution results when meta includes the header containing the execution result for origin shard
     "meta_origin_exec_proposed",
@@ -112,10 +112,10 @@ COLORS_MAPPING = {
     Colors.meta_dest_committed: colors.lightblue,
     Colors.origin_exec_proposed: colors.khaki,
     Colors.origin_exec_partial_executed: colors.gold,
-    Colors.origin_exec_final: colors.darkgoldenrod,
+    Colors.origin_exec_final: colors.yellow,
     Colors.dest_exec_proposed: colors.lightcoral,
     Colors.dest_exec_partial_executed: colors.crimson,
-    Colors.dest_exec_final: colors.firebrick,
+    Colors.dest_exec_final: colors.pink,
     Colors.meta_origin_exec_committed: colors.mediumseagreen,
     Colors.meta_dest_exec_committed: colors.cornflowerblue,
 }

@@ -21,18 +21,18 @@ class HeaderData:
     def __init__(self):
         self.header_dictionary = {
             'proposed_headers': [],
-            'commited_headers': []
+            'committed_headers': []
         }
         self.seen_headers: dict[str, set[str]] = {'proposed_headers': set(),
-                                                  'commited_headers': set()}
+                                                  'committed_headers': set()}
 
     def reset(self):
         self.header_dictionary = {
             'proposed_headers': [],
-            'commited_headers': []
+            'committed_headers': []
         }
         self.seen_headers: dict[str, set[str]] = {'proposed_headers': set(),
-                                                  'commited_headers': set()}
+                                                  'committed_headers': set()}
 
     def add_proposed_header(self, header: dict[str, Any]) -> bool:
         nonce = get_value('nonce', header)
@@ -42,12 +42,12 @@ class HeaderData:
         self.seen_headers['proposed_headers'].add(nonce)
         return True
 
-    def add_commited_header(self, header: dict[str, Any]) -> bool:
+    def add_committed_header(self, header: dict[str, Any]) -> bool:
         nonce = get_value('nonce', header)
-        if nonce in self.seen_headers['commited_headers']:
+        if nonce in self.seen_headers['committed_headers']:
             return False
-        self.header_dictionary['commited_headers'].append(header)
-        self.seen_headers['commited_headers'].add(nonce)
+        self.header_dictionary['committed_headers'].append(header)
+        self.seen_headers['committed_headers'].add(nonce)
         return True
 
 
@@ -58,14 +58,14 @@ class ShardData:
         self.seen_miniblock_hashes = set()
 
     def add_node(self, node_data: HeaderData):
-        if node_data.header_dictionary['commited_headers'] == []:
-            node_data.header_dictionary['commited_headers'] = node_data.header_dictionary['proposed_headers'].copy()
+        if node_data.header_dictionary['committed_headers'] == []:
+            node_data.header_dictionary['committed_headers'] = node_data.header_dictionary['proposed_headers'].copy()
         for header_status in node_data.header_dictionary.keys():
             for header in node_data.header_dictionary[header_status]:
                 shard_id = get_shard_id(header)
                 added = False
-                if header_status == 'commited_headers':
-                    added = self.parsed_headers[shard_id].add_commited_header(header)
+                if header_status == 'committed_headers':
+                    added = self.parsed_headers[shard_id].add_committed_header(header)
                 elif header_status == 'proposed_headers':
                     added = self.parsed_headers[shard_id].add_proposed_header(header)
                 else:
@@ -92,7 +92,7 @@ class ShardData:
 
         for shard_id, header_data in self.parsed_headers.items():
 
-            for header in sorted(header_data.header_dictionary['commited_headers'],
+            for header in sorted(header_data.header_dictionary['committed_headers'],
                                  key=lambda x: get_value('nonce', x)):
 
                 epoch = get_value('epoch', header)

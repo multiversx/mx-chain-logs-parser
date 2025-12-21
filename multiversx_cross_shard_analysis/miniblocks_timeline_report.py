@@ -168,7 +168,6 @@ def build_miniblock_section(miniblock: dict[str, Any], page_usable_width: float)
         items = mentioned.get(r, [])
         drawing = build_stack_for_round(items, col_width)
         cells.append(drawing)
-    gap = has_round_gap(rounds)
 
     tbl = Table(
         [header, cells],
@@ -184,7 +183,7 @@ def build_miniblock_section(miniblock: dict[str, Any], page_usable_width: float)
         ("VALIGN", (0, 1), (-1, -1), "TOP"),
     ]
 
-    if gap:
+    if miniblock.get("hasAlarm", False):
         style.append(("BOX", (0, 0), (-1, -1), 2, colors.red))
 
     tbl.setStyle(TableStyle(style))
