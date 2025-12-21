@@ -152,7 +152,6 @@ def build_miniblock_section(miniblock: dict[str, Any], page_usable_width: float)
         flow.append(Spacer(1, 6))
         return flow
 
-    mentioned = miniblock.get("mentioned", {})
     rounds = sorted(mentioned.keys())
 
     num_cols = max(1, len(rounds))

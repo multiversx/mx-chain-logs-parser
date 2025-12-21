@@ -120,9 +120,9 @@ header_exec_result = {
             "hash": "994ceb37eb426a123501928c8c5b67e59f607557fb5f332d5e55fd297ab5d870",
             "receiverShardID": 0,
             "reserved": "1001",
-                        "senderShardID": 0,
-                        "txCount": 1610,
-                        "type": 0
+            "senderShardID": 0,
+            "txCount": 1610,
+            "type": 0
         }
     ],
     "nonce": 1649,

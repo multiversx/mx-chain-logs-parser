@@ -22,7 +22,6 @@ class HeaderAnalysisChecker(NodeLogsChecker):
     def post_process_node_logs(self):
         # Implement post-processing logic here
         self.write_node_json()
-        pass
 
     def create_json_for_node(self) -> dict[str, Any]:
         return {

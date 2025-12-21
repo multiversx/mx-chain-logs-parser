@@ -2,8 +2,7 @@
 from typing import Any
 
 from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
-from multiversx_cross_shard_analysis.test_decode_reserved import \
-    decode_reserved_field
+from multiversx_cross_shard_analysis.decode_reserved import decode_reserved_field
 
 from .constants import (COLORS_MAPPING, TYPE_NAMES, dest_shard, meta,
                         origin_shard)
