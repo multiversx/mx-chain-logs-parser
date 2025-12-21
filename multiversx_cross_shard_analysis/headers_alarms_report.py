@@ -151,8 +151,8 @@ def build_nonce_section(shard_id: int, nonce: int, rounds: list[int], data: dict
 # PDF builder
 # -----------------------------
 
-def build_nonce_timeline_pdf(alarm_data: dict[str, dict[int, dict[int, dict[int, list[Any]]]]],
-                             outname="nonce_alarms.pdf"):
+def build_nonce_alarms_timeline_pdf(alarm_data: dict[str, dict[int, dict[int, dict[int, list[Any]]]]],
+                                    outname="nonce_alarms.pdf"):
     doc = SimpleDocTemplate(
         outname,
         pagesize=A4,
@@ -330,7 +330,7 @@ def main():
 
     for epoch in sorted(input_data.keys()):
         outfile = os.path.join(out_folder, f"nonce_alarms_report_{epoch}.pdf")
-        build_nonce_timeline_pdf(input_data[epoch], outname=outfile)
+        build_nonce_alarms_timeline_pdf(input_data[epoch], outname=outfile)
         print(f"Nonce alarms report for Epoch {epoch} generated: {outfile}")
 
 
