@@ -24,6 +24,7 @@ class Issues(Enum):
     # Logic for: MISSING_DESTINATION
     def check_missing_or_duplicate_destination(self, mb_info: dict[str, Any]) -> bool:
         receiver = mb_info.get("receiverShardID")
+        sender = mb_info.get("senderShardID")
         count = 0
 
         for _, header in mb_info.get("mentioned", []):
@@ -31,8 +32,9 @@ class Issues(Enum):
                 count += 1
 
         is_dest_missing = count == 0 and mb_info.get("type") in [0, 90]
-        is_dest_duplicate = count > 2 and mb_info.get("type") in [0, 90] and mb_info.get("first_seen_epoch", 0) >= SUPERNOVA_ACTIVATION_EPOCH
-
+        is_dest_duplicate = count > 2 and mb_info.get("type") in [0, 90] and receiver != sender and mb_info.get("first_seen_epoch", 0) >= SUPERNOVA_ACTIVATION_EPOCH
+        if is_dest_missing or is_dest_duplicate:
+            print(f"Miniblock {mb_info.get('hash')} nonce {mb_info.get('nonce')} has issue: Count={count}, Type={mb_info.get('type')}, SenderShardID={mb_info.get('senderShardID')}, ReceiverShardID={receiver}")
         return is_dest_missing or is_dest_duplicate
 
     # Logic for: WRONG_PROCESSING_ORDER

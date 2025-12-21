@@ -1,5 +1,4 @@
 
-import json
 from typing import Any
 
 from multiversx_cross_shard_analysis.constants import (COLORS_MAPPING,
@@ -33,8 +32,6 @@ class MiniblockData:
 
             # Set the general alarm flag if any issues were found
             mb_info['hasAlarm'] = len(mb_info['alarms']) > 0
-            if mb_hash.startswith("66bc97b69075f10"):
-                print(json.dumps(mb_info, indent=4))
 
     def get_color_for_state(self, mention_type: str, tx_count: int, header: dict[str, Any]) -> Colors:
         reserved = header.get('reserved', {})
