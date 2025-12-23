@@ -188,7 +188,7 @@ def build_nonce_timeline_pdf(shards_data: dict[int, dict[int, dict[int, list[Any
                 first_page = False
 
             round_list = list(rdata.keys())
-            alarm = nonce in nonce_alarms[shard_id]
+            alarm = nonce in nonce_alarms.get(shard_id, set())
             story.extend(build_nonce_section(shard_id, nonce, round_list, rdata, usable_width, alarm))
             current_h += h_needed
 

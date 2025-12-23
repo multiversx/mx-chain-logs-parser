@@ -32,7 +32,7 @@ class Issues(Enum):
                 count += 1
 
         is_dest_missing = count == 0 and mb_info.get("type") in [0, 90]
-        is_dest_duplicate = count > 2 and mb_info.get("type") in [0, 90] and receiver != sender and mb_info.get("first_seen_epoch", 0) >= SUPERNOVA_ACTIVATION_EPOCH
+        is_dest_duplicate = count > 4 and mb_info.get("type") in [0, 90] and receiver != sender and mb_info.get("first_seen_epoch", 0) >= SUPERNOVA_ACTIVATION_EPOCH
 
         return is_dest_missing or is_dest_duplicate
 
