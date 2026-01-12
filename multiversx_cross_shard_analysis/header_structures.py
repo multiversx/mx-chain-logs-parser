@@ -177,7 +177,7 @@ class Header:
                         for miniblock in exec_result.get('miniBlockHeaders', []):
                             miniblock_mention = f'{meta}_{origin_shard if shard_metadata["shard_id"] == miniblock["senderShardID"] else dest_shard}_exec_{status}'
                             miniblocks.append((miniblock_mention, miniblock, self.metadata.copy()))
-        if Header.isHeaderV3(header):
+        if Header.isHeaderV3(header) or Header.isMetaHeaderV3(header):
             for exec_result in header['executionResults']:
                 base_exec_result = exec_result.get('baseExecutionResult', {})
                 exec_result_metadata = self.metadata.copy()
