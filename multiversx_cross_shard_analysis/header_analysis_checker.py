@@ -13,10 +13,12 @@ class HeaderAnalysisChecker(NodeLogsChecker):
 
     def initialize_checker(self, args):
         self.parsed = HeaderData().header_dictionary
+        self.metaheaders = {}
         return super().initialize_checker(args)
 
     def process_parsed_result(self):
         self.parsed = self.parser.parsed_headers.header_dictionary.copy()
+        self.metaheaders = self.parser.parsed_headers.metaheaders.copy()
         self.parser.initialize_checker()
 
     def post_process_node_logs(self):
@@ -27,7 +29,8 @@ class HeaderAnalysisChecker(NodeLogsChecker):
         return {
             "node_name": self.node_name,
             "run_name": self.run_name,
-            "header_analysis": self.parsed
+            "header_analysis": self.parsed,
+            "metaheaders": self.metaheaders
         }
 
     def reset_node(self, args: Namespace):
