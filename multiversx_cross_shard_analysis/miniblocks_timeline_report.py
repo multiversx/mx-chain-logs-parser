@@ -21,8 +21,10 @@ from reportlab.platypus import (PageBreak, Paragraph, SimpleDocTemplate,
                                 Spacer, Table, TableStyle)
 from reportlab.platypus.flowables import Flowable
 
-from multiversx_cross_shard_analysis.constants import TYPE_NAMES
+from multiversx_cross_shard_analysis.constants import TYPE_NAMES, Colors
 from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
+
+from multiversx_cross_shard_analysis.color_mapping import COLORS_MAPPING
 
 # -----------------------------
 # CONFIG
@@ -83,7 +85,7 @@ class RectCell(Flowable):
 # -----------------------------
 
 
-def build_stack_for_round(items: list[tuple[str, str, colors.Color]], col_width: float) -> Drawing:
+def build_stack_for_round(items: list[tuple[str, str, Colors]], col_width: float) -> Drawing:
     """
     items: list of (label, info, color)
     """
@@ -93,7 +95,8 @@ def build_stack_for_round(items: list[tuple[str, str, colors.Color]], col_width:
     d = Drawing(col_width, total_h)
     y = total_h - RECT_H
 
-    for label, info, col in items:
+    for label, info, color in items:
+        col = COLORS_MAPPING[color] if isinstance(color, Colors) else color
         rect_w = max(2, col_width - RECT_PADDING_X * 2) - 4
         if 'proposed' in label:
             # dashed border for proposed

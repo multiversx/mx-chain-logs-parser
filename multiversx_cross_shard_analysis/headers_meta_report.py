@@ -11,9 +11,11 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (Flowable, Paragraph, SimpleDocTemplate, Spacer,
                                 Table, TableStyle)
 
-from multiversx_cross_shard_analysis.constants import COLORS_MAPPING
+from multiversx_cross_shard_analysis.color_mapping import COLORS_MAPPING
 
 from multiversx_cross_shard_analysis.header_structures import HeaderData, ShardData
+
+from multiversx_cross_shard_analysis.constants import Colors
 
 # ----------------------------------------
 # legend
@@ -83,7 +85,7 @@ def miniblock_box(text: str, stage_color: colors.Color) -> Drawing:
     return d
 
 
-def stacked_miniblocks(miniblocks: list[tuple[str, colors.Color]], shard: int | None = None) -> Drawing:
+def stacked_miniblocks(miniblocks: list[tuple[str, Colors]], shard: int | None = None) -> Drawing:
     height = 20 * (len(miniblocks) + 1 if shard is not None else len(miniblocks))
     d = Drawing(120, height)
     y = height - 20
@@ -95,7 +97,8 @@ def stacked_miniblocks(miniblocks: list[tuple[str, colors.Color]], shard: int | 
         y -= 20
 
     # miniblocks
-    for (nonce, color) in miniblocks:
+    for (nonce, color_name) in miniblocks:
+        color = COLORS_MAPPING[color_name] if isinstance(color_name, Colors) else color_name
         d.add(Rect(0, y, 120, 18, fillColor=color, strokeColor=colors.black))  # type: ignore
         d.add(String(3, y + 5, str(nonce), fontSize=6))
         y -= 20

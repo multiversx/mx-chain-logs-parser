@@ -1,8 +1,7 @@
 
 from typing import Any
 
-from multiversx_cross_shard_analysis.constants import (COLORS_MAPPING,
-                                                       TYPE_NAMES, Colors)
+from multiversx_cross_shard_analysis.constants import (TYPE_NAMES, Colors)
 from multiversx_cross_shard_analysis.decode_reserved import \
     get_default_decoded_data
 from multiversx_cross_shard_analysis.issues import Issues
@@ -83,7 +82,7 @@ class MiniblockData:
                 if shard not in report[epoch][round_number]:
                     report[epoch][round_number][shard] = []
 
-                color = COLORS_MAPPING[self.get_color_for_state(mention_type, mb_info['txCount'], header)]
+                color = self.get_color_for_state(mention_type, mb_info['txCount'], header)
                 report[epoch][round_number][shard].append((mb_hash, color))
         return report
 
@@ -115,7 +114,7 @@ class MiniblockData:
                 if round_number not in mb_data['mentioned']:
                     mb_data['mentioned'][round_number] = []
 
-                color = COLORS_MAPPING[self.get_color_for_state(mention_type, mb_info['txCount'], header)]
+                color = self.get_color_for_state(mention_type, mb_info['txCount'], header)
                 reserved = header.get('reserved')
                 if reserved == {}:
                     reserved = get_default_decoded_data(tx_count=mb_info['txCount'])
@@ -161,7 +160,7 @@ class MiniblockData:
                 if round_number not in report[epoch][shard_id][nonce]:
                     report[epoch][shard_id][nonce][round_number] = []
 
-                color = COLORS_MAPPING[self.get_color_for_state(mention_type, mb_info['txCount'], header)]
+                color = self.get_color_for_state(mention_type, mb_info['txCount'], header)
                 label = f'Shard {header["shard_id"]}' if header["shard_id"] != 4294967295 else "MetaShard"
 
                 if mb_info['type'] != 0:
@@ -200,7 +199,7 @@ class MiniblockData:
                     for issue in Issues:
                         report[epoch][issue.name] = {}
 
-                color = COLORS_MAPPING[self.get_color_for_state(mention_type, mb_info['txCount'], header)]
+                color = self.get_color_for_state(mention_type, mb_info['txCount'], header)
                 label = f'Shard {header["shard_id"]}' if header["shard_id"] != 4294967295 else "MetaShard"
 
                 if mb_info['type'] != 0:
@@ -238,7 +237,7 @@ class MiniblockData:
                     for issue in Issues:
                         report[epoch][issue.name] = {}
 
-                color = COLORS_MAPPING[self.get_color_for_state(mention_type, mb_info['txCount'], header)]
+                color = self.get_color_for_state(mention_type, mb_info['txCount'], header)
                 label = f'Shard {header["shard_id"]}' if header["shard_id"] != 4294967295 else "MetaShard"
 
                 if mb_info['type'] != 0:

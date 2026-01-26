@@ -6,7 +6,7 @@ from typing import Any
 from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
 from multiversx_cross_shard_analysis.decode_reserved import decode_reserved_field
 
-from .constants import (COLORS_MAPPING, TYPE_NAMES, Colors, dest_shard, meta,
+from .constants import (TYPE_NAMES, Colors, dest_shard, meta,
                         origin_shard)
 
 
@@ -122,7 +122,7 @@ class ShardData:
                     if meta_nonce >= 0:
                         is_monotonic = last_meta_nonce == 0 or last_meta_nonce == meta_nonce or last_meta_nonce == meta_nonce - 1
 
-                        color = COLORS_MAPPING[Colors.origin_proposed] if is_monotonic else COLORS_MAPPING[Colors.dest_final]
+                        color = Colors.origin_proposed if is_monotonic else Colors.dest_final
                         report[epoch][round_number][shard].append((meta_nonce, color))
 
                         if not is_monotonic:
@@ -168,7 +168,7 @@ class ShardData:
                         if miniblock['type'] != 0:
                             label += f' ({TYPE_NAMES[miniblock["type"]]})'
                         # append tuple (label, info, color)
-                        result.setdefault(rn, []).append((label, mb_hash[:15] + '...', COLORS_MAPPING[color]))
+                        result.setdefault(rn, []).append((label, mb_hash[:15] + '...', color))
 
                 # if result empty -> we don't include this nonce at all, don't count it
                 if not result:

@@ -11,10 +11,12 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (Flowable, LongTable, PageBreak, Paragraph,
                                 SimpleDocTemplate, Spacer, TableStyle)
 
-from multiversx_cross_shard_analysis.constants import COLORS_MAPPING, Colors
+from multiversx_cross_shard_analysis.constants import Colors
 from multiversx_cross_shard_analysis.header_structures import (HeaderData,
                                                                ShardData)
 from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
+
+from multiversx_cross_shard_analysis.color_mapping import COLORS_MAPPING
 
 # -----------------------------
 # CONFIG (mirrors miniblock report)
@@ -39,7 +41,7 @@ TITLE_HEIGHT = 60
 # build stacked rectangles (same as miniblock version)
 # -----------------------------
 
-def build_stack_rows(items: list[tuple[str, str, colors.Color]], col_width: float) -> list[Drawing]:
+def build_stack_rows(items: list[tuple[str, str, Colors]], col_width: float) -> list[Drawing]:
     """
     Instead of one giant Drawing, we return a list of small ones.
     Each drawing represents one row in the vertical stack.
@@ -56,11 +58,12 @@ def build_stack_rows(items: list[tuple[str, str, colors.Color]], col_width: floa
         return row_drawings
 
     for label, info, col in items:
+        color = COLORS_MAPPING[col] if isinstance(col, Colors) else col
         # Create a small drawing for just this one item
         d = Drawing(col_width, RECT_H)
         rect_w = max(2, col_width - RECT_PADDING_X * 2) - 4
 
-        d.add(Rect(0, 2, rect_w, RECT_H - 4, fillColor=col, strokeColor=colors.black))  # type: ignore
+        d.add(Rect(0, 2, rect_w, RECT_H - 4, fillColor=color, strokeColor=colors.black))  # type: ignore
 
         text_x = RECT_PADDING_X + 3
         d.add(String(text_x, 12, label, fontSize=RECT_LABEL_FONT))
@@ -198,75 +201,6 @@ def build_nonce_alarms_timeline_pdf(alarm_data: dict[str, dict[int, dict[int, di
     if not story:
         return
     doc.build(story)
-
-
-# ----------------------------- Example input data ------------------------------
-input_data = {
-    0: {
-        1: {
-            100: [('origin_final', 'Shard 0', COLORS_MAPPING[Colors.origin_final])],
-            101: [('origin_notarized', 'Shard 0', COLORS_MAPPING[Colors.meta_origin_committed])],
-            102: [('dest_proposed', 'Shard 1', COLORS_MAPPING[Colors.dest_proposed]), ('dest_final', 'Shard 2', COLORS_MAPPING[Colors.dest_final])],
-            103: [('dest_partial', 'Shard 1', COLORS_MAPPING[Colors.dest_partial_executed]), ('dest_notarized', 'Shard 2', COLORS_MAPPING[Colors.meta_dest_committed])],
-            104: [('dest_final', 'Shard 1', COLORS_MAPPING[Colors.dest_final])],
-            105: [('dest_notarized', 'Shard 1', COLORS_MAPPING[Colors.meta_dest_committed])],
-        },
-        2: {
-            101: [('origin_proposed', 'Shard 0', COLORS_MAPPING[Colors.origin_proposed])],
-            103: [('origin_final', 'Shard 0', COLORS_MAPPING[Colors.origin_final])],
-            104: [('dest_final', 'Shard 2', COLORS_MAPPING[Colors.dest_final]), ('origin_notarized', 'Shard 0', COLORS_MAPPING[Colors.meta_origin_committed])],
-            105: [('dest_notarized', 'Shard 2', COLORS_MAPPING[Colors.meta_dest_committed])],
-        }
-    },
-    1: {
-        1: {
-            101: [('N1', 'S1', COLORS_MAPPING[Colors.origin_final])],
-            102: [('N1', 'S1', COLORS_MAPPING[Colors.meta_origin_committed])],
-            103: [('N1', 'S0', COLORS_MAPPING[Colors.dest_proposed]), ('N1', 'S2', COLORS_MAPPING[Colors.dest_final])],
-            104: [('N1', 'S0', COLORS_MAPPING[Colors.dest_partial_executed]), ('N1', 'S2', COLORS_MAPPING[Colors.meta_dest_committed])],
-            105: [('N1', 'S0', COLORS_MAPPING[Colors.dest_final])],
-            106: [('N1', 'S0', COLORS_MAPPING[Colors.meta_dest_committed])],
-        },
-        2: {
-            102: [('N2', 'S1', COLORS_MAPPING[Colors.origin_partial_executed])],
-            104: [('N2', 'S1', COLORS_MAPPING[Colors.origin_final])],
-            105: [('N2', 'S2', COLORS_MAPPING[Colors.dest_final]), ('N2', 'S1', COLORS_MAPPING[Colors.meta_origin_committed])],
-            106: [('N2', 'S2', COLORS_MAPPING[Colors.meta_dest_committed])],
-        },
-    },
-    2: {
-        1: {
-            100: [('N1', 'S2', COLORS_MAPPING[Colors.origin_final])],
-            101: [('N1', 'S2', COLORS_MAPPING[Colors.meta_origin_committed])],
-            102: [('N1', 'S0', COLORS_MAPPING[Colors.dest_final]), ('N1', 'S1', COLORS_MAPPING[Colors.dest_final])],
-            103: [('N1', 'S0', COLORS_MAPPING[Colors.meta_dest_committed]), ('N1', 'S1', COLORS_MAPPING[Colors.meta_dest_committed])],
-        },
-        2: {
-            101: [('N2', 'S2', COLORS_MAPPING[Colors.origin_final])],
-            102: [('N2', 'S2', COLORS_MAPPING[Colors.meta_origin_committed])],
-            103: [('N2', 'S0', COLORS_MAPPING[Colors.dest_final])],
-            104: [('N2', 'S0', COLORS_MAPPING[Colors.meta_dest_committed]), ('N2', 'S1', COLORS_MAPPING[Colors.dest_final])],
-            105: [('N2', 'S1', COLORS_MAPPING[Colors.meta_dest_committed])],
-        },
-        3: {
-            103: [('N3', 'S2', COLORS_MAPPING[Colors.origin_final])],
-            104: [('N3', 'S2', COLORS_MAPPING[Colors.meta_origin_committed])],
-            105: [('N3', 'S1', COLORS_MAPPING[Colors.dest_final])],
-            106: [('N3', 'S1', COLORS_MAPPING[Colors.dest_final])],
-            107: [('N3', 'S1', COLORS_MAPPING[Colors.meta_dest_committed])],
-        },
-    },
-    4294967295: {
-        1: {
-            100: [('N1', 'M', COLORS_MAPPING[Colors.origin_final])],
-            103: [('N1', 'M', COLORS_MAPPING[Colors.meta_origin_committed])],
-            104: [('N1', 'S0', COLORS_MAPPING[Colors.dest_final]), ('N1', 'S1', COLORS_MAPPING[Colors.dest_final])],
-            105: [('N1', 'S0', COLORS_MAPPING[Colors.meta_dest_committed]), ('N1', 'S1', COLORS_MAPPING[Colors.meta_dest_committed]), ('N1', 'S2', COLORS_MAPPING[Colors.dest_final])],
-            106: [('N1', 'S2', COLORS_MAPPING[Colors.meta_dest_committed])],
-        }
-    }
-
-}
 
 
 def main():
