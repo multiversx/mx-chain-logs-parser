@@ -186,7 +186,7 @@ def build_nonce_alarms_timeline_pdf(alarm_data: dict[str, dict[int, dict[int, di
                 h_needed = SECTION_BASE_HEIGHT + max(0, max_stack - 2) * EXTRA_LINE_HEIGHT
 
                 effective_page_height = MAX_H - (TITLE_HEIGHT if first_page else 0)
-
+                # print(f"DEBUG: shard {shard_id} nonce {nonce} needs height {h_needed}, current_h={current_h}, effective_page_height={effective_page_height}")
                 if current_h + h_needed > effective_page_height:
                     story.append(PageBreak())
                     current_h = 0
@@ -195,7 +195,8 @@ def build_nonce_alarms_timeline_pdf(alarm_data: dict[str, dict[int, dict[int, di
                 round_list = list(rdata.keys())
                 story.extend(build_nonce_section(shard_id, nonce, round_list, rdata, usable_width))
                 current_h += h_needed
-
+    if not story:
+        return
     doc.build(story)
 
 
@@ -330,6 +331,9 @@ def main():
 
     for epoch in sorted(input_data.keys()):
         outfile = os.path.join(out_folder, f"nonce_alarms_report_{epoch}.pdf")
+        if not input_data[epoch]:
+            print(f"Epoch {epoch} has no alarms, skipping report generation.")
+            continue
         build_nonce_alarms_timeline_pdf(input_data[epoch], outname=outfile)
         print(f"Nonce alarms report for Epoch {epoch} generated: {outfile}")
 

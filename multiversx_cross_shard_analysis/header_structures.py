@@ -1,10 +1,12 @@
 
+
 from typing import Any
+
 
 from multiversx_cross_shard_analysis.miniblock_data import MiniblockData
 from multiversx_cross_shard_analysis.decode_reserved import decode_reserved_field
 
-from .constants import (COLORS_MAPPING, TYPE_NAMES, dest_shard, meta,
+from .constants import (COLORS_MAPPING, TYPE_NAMES, Colors, dest_shard, meta,
                         origin_shard)
 
 
@@ -24,6 +26,7 @@ class HeaderData:
         }
         self.seen_headers: dict[str, set[str]] = {'proposed_headers': set(),
                                                   'committed_headers': set()}
+        self.metaheaders: dict[str, int] = {}
 
     def reset(self):
         self.header_dictionary = {
@@ -32,6 +35,7 @@ class HeaderData:
         }
         self.seen_headers: dict[str, set[str]] = {'proposed_headers': set(),
                                                   'committed_headers': set()}
+        self.metaheaders: dict[str, int] = {}
 
     def add_proposed_header(self, header: dict[str, Any]) -> bool:
         nonce = get_value('nonce', header)
@@ -55,8 +59,14 @@ class ShardData:
         self.parsed_headers = {0: HeaderData(), 1: HeaderData(), 2: HeaderData(), 4294967295: HeaderData()}
         self.miniblocks = {}
         self.seen_miniblock_hashes = set()
+        self.metablock_headers: dict[str, int] = {}
 
     def add_node(self, node_data: HeaderData):
+        # copy metaheaders
+        for hash, nonce in node_data.metaheaders.items():
+            self.metablock_headers[hash] = nonce
+
+        # copy headers
         if node_data.header_dictionary['committed_headers'] == []:
             node_data.header_dictionary['committed_headers'] = node_data.header_dictionary['proposed_headers'].copy()
         for header_status in node_data.header_dictionary.keys():
@@ -84,6 +94,43 @@ class ShardData:
             # metadata = header_struct.metadata.copy()
             metadata["reserved"] = decode_reserved_field(mb.get("reserved", ""), mb.get("txCount", 0))
             self.miniblocks[mb_hash]['mentioned'].append((mention_type, metadata))
+
+    def get_data_for_metaheader_report(self) -> tuple[dict[int, dict[int, Any]], dict[int, list[tuple[int, int, int]]]]:
+        report = {}
+        non_monotonic = {}
+        for shard_id, header_data in self.parsed_headers.items():
+            if shard_id > 2:
+                continue
+            last_meta_nonce = 0
+            for header in sorted(header_data.header_dictionary['committed_headers'],
+                                 key=lambda x: get_value('nonce', x)):
+
+                epoch = get_value('epoch', header)
+                if epoch not in report:
+                    report[epoch] = {}
+                round_number = get_value('round', header)
+                if round_number not in report[epoch]:
+                    report[epoch][round_number] = {}
+                shard = get_value('shardID', header)
+                if shard not in report[epoch][round_number]:
+                    report[epoch][round_number][shard] = []
+
+                metaBlockHeadersMentioned = get_value('metaBlockHashes', header)
+
+                for meta_hash in metaBlockHeadersMentioned:
+                    meta_nonce = self.metablock_headers.get(meta_hash, -1)
+                    if meta_nonce >= 0:
+                        is_monotonic = last_meta_nonce == 0 or last_meta_nonce == meta_nonce or last_meta_nonce == meta_nonce - 1
+
+                        color = COLORS_MAPPING[Colors.origin_proposed] if is_monotonic else COLORS_MAPPING[Colors.dest_final]
+                        report[epoch][round_number][shard].append((meta_nonce, color))
+
+                        if not is_monotonic:
+                            non_monotonic.setdefault(epoch, []).append((round_number, shard, meta_nonce))
+
+                        last_meta_nonce = meta_nonce
+
+        return report, non_monotonic
 
     def get_data_for_header_horizontal_report(self) -> dict[str, dict[int, Any]]:
         miniblocks = MiniblockData(self.miniblocks)

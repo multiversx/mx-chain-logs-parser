@@ -218,7 +218,7 @@ def build_pdf_from_miniblocks(epoch: int, miniblocks: list[dict[str, Any]], outn
     story.append(Paragraph(f"<b>Miniblock Detail Report — Epoch {epoch}</b>", styles["Title"]))
     story.append(Spacer(1, 8))
     for i, mb in enumerate(miniblocks, 1):
-        num_rects = max(len(v) for v in mb.get("mentioned", {}).values())
+        num_rects = max([len(v) for v in mb.get("mentioned", {}).values()] or [0])
         EXTRA_LINES = max(0, num_rects - 2)
 
         miniblock_height = MINIBLOCK_WITH_2_ROWS + EXTRA_LINES * EXTRA_LINE_HEIGHT

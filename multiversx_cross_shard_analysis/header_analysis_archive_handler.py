@@ -18,6 +18,7 @@ class HeaderAnalysisArchiveHandler(ArchiveHandler):
         """Process the parsed data for a single node."""
         node_data = HeaderData()
         node_data.header_dictionary = self.checker.parsed
+        node_data.metaheaders = self.checker.metaheaders
         self.shard_data.add_node(node_data)
 
     def process_run_data(self):
@@ -29,7 +30,8 @@ class HeaderAnalysisArchiveHandler(ArchiveHandler):
             run_data = {
                 "run_name": self.run_name,
                 "shard_id": shard_id,
-                "shards": header_data.header_dictionary
+                "shards": header_data.header_dictionary,
+                "metablocks": self.shard_data.metablock_headers,
             }
             shard_reports_path = f'./Reports/{self.run_name}/Shards'
             output_file = Path(f'{shard_reports_path}/{shard_id}_report.json')
