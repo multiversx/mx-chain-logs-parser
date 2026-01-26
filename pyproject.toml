@@ -3,5 +3,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "multiversx-logs-parser"
+name = "mx-chain-logs-parser"
 version = "0.1.0"
+
+[tool.setuptools.packages.find]
+include = [
+    "multiversx_logs_parser_tools",
+    "multiversx_logs_parser_tools.*",
+    "multiversx_cross_shard_analysis",
+    "multiversx_cross_shard_analysis.*"
+]
