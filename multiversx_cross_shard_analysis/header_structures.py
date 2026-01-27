@@ -217,7 +217,7 @@ class Header:
             for shard_header in header['shardInfo']:
                 shard_metadata = self.get_header_metadata(shard_header)
                 for miniblock in shard_header.get('shardMiniBlockHeaders', []):
-                    miniblock_mention = f'{meta}_{origin_shard if shard_metadata['shard_id'] == miniblock['senderShardID'] else dest_shard}_{status}'
+                    miniblock_mention = f"{meta}_{origin_shard if shard_metadata['shard_id'] == miniblock['senderShardID'] else dest_shard}_{status}"
                     miniblocks.append((miniblock_mention, miniblock, self.metadata.copy()))
                 if Header.isMetaHeaderV3(header):
                     for exec_result in shard_header.get('executionResults', []):
