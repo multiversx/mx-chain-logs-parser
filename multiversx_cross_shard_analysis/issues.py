@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Callable
 
-DEFAULT_MAX_ROUND_GAP_ALLOWED = 1
+DEFAULT_MAX_ROUND_GAP_ALLOWED = 3
 DEFAULT_SUPERNOVA_ACTIVATION_EPOCH = 2
 
 
@@ -10,18 +10,14 @@ class Issues(Enum):
     WRONG_PROCESSING_ORDER = 'wrong_processing_order'
     GAP_BETWEEN_ROUNDS = 'gap_between_rounds'
 
-    def __init__(self, value: str, max_round_gap_allowed: int = DEFAULT_MAX_ROUND_GAP_ALLOWED, supernova_activation_epoch: int = DEFAULT_SUPERNOVA_ACTIVATION_EPOCH) -> None:
-        self._value_ = value
-        self.max_round_gap_allowed = max_round_gap_allowed
-        self.supernova_activation_epoch = supernova_activation_epoch
-
     # Logic for: GAP_BETWEEN_ROUNDS
+
     def check_gap_between_rounds(self, mb_info: dict[str, Any]) -> bool:
         last_round = -1
         for _, mentioning_header in mb_info.get('mentioned', []):
             if last_round == -1:
                 last_round = mentioning_header.get('round')
-            elif mentioning_header.get('round') - last_round > self.max_round_gap_allowed:
+            elif mentioning_header.get('round') - last_round > DEFAULT_MAX_ROUND_GAP_ALLOWED:
                 return True
             last_round = mentioning_header.get('round')
         return False
@@ -37,7 +33,7 @@ class Issues(Enum):
                 count += 1
 
         is_dest_missing = count == 0 and mb_info.get("type") in [0, 90]
-        is_dest_duplicate = count > 4 and mb_info.get("type") in [0, 90] and receiver != sender and mb_info.get("first_seen_epoch", 0) >= self.supernova_activation_epoch
+        is_dest_duplicate = count > 4 and mb_info.get("type") in [0, 90] and receiver != sender and mb_info.get("first_seen_epoch", 0) >= DEFAULT_SUPERNOVA_ACTIVATION_EPOCH
 
         return is_dest_missing or is_dest_duplicate
 
