@@ -95,7 +95,7 @@ class ShardData:
             metadata["reserved"] = decode_reserved_field(mb.get("reserved", ""), mb.get("txCount", 0))
             self.miniblocks[mb_hash]['mentioned'].append((mention_type, metadata))
 
-    def get_data_for_metaheader_report(self) -> tuple[dict[int, dict[int, Any]], dict[int, list[tuple[int, int, int]]]]:
+    def get_data_for_metaheader_report(self) -> tuple[dict[int, dict[int, Any]], dict[int, list[tuple[int, int, int, int]]]]:
         report = {}
         non_monotonic = {}
         for shard_id, header_data in self.parsed_headers.items():
@@ -126,7 +126,7 @@ class ShardData:
                         report[epoch][round_number][shard].append((meta_nonce, color))
 
                         if not is_monotonic:
-                            non_monotonic.setdefault(epoch, []).append((round_number, shard, meta_nonce))
+                            non_monotonic.setdefault(epoch, []).append((round_number, shard, meta_nonce, last_meta_nonce))
 
                         last_meta_nonce = meta_nonce
 

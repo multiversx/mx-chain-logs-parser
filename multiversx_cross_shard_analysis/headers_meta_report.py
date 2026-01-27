@@ -137,7 +137,7 @@ class HFlowable(Flowable):
 # build report for one epoch
 # ----------------------------------------
 
-def build_metablocks_report(epoch: int, rounds_data: dict[int, Any], non_monotonic: list[tuple[int, int, int]] | None, shards: list[int], outname: str):
+def build_metablocks_report(epoch: int, rounds_data: dict[int, Any], non_monotonic: list[tuple[int, int, int, int]] | None, shards: list[int], outname: str):
 
     doc = SimpleDocTemplate(
         outname,
@@ -157,11 +157,11 @@ def build_metablocks_report(epoch: int, rounds_data: dict[int, Any], non_monoton
         story.append(Paragraph("<b>Non-monotonic meta blocks</b>", styles["Heading2"]))
         story.append(Spacer(1, 6))
 
-        table_data = [["Round", "Shard", "Meta Nonce"]]
-        for rnd, shard, meta in non_monotonic:
-            table_data.append([str(rnd), str(shard), str(meta)])
+        table_data = [["Round", "Shard", "Meta Nonce", "Last Meta Nonce"]]
+        for rnd, shard, meta, last in non_monotonic:
+            table_data.append([str(rnd), str(shard), str(meta), str(last)])
 
-        tbl = Table(table_data, colWidths=[80, 80, 120])
+        tbl = Table(table_data, colWidths=[80, 80, 120, 120])
         tbl.setStyle(TableStyle([
             ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
             ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
