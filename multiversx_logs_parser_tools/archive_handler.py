@@ -1,6 +1,7 @@
 
 import argparse
-import re
+import os
+import tarfile
 import zipfile
 from typing import TypeVar
 
@@ -14,35 +15,59 @@ P = TypeVar("P", bound=AhoCorasickParser)
 class ArchiveHandler:
     def __init__(self, checker: NodeLogsChecker[P], logs_path: str):
         self.logs_path = logs_path
-        zip_name_pattern = r'.*/(.*?).zip'
-        match = re.match(zip_name_pattern, self.logs_path)
-        self.run_name = match.group(1) if match else 'unknown-zip-name'
+        self.run_name = self._extract_run_name(logs_path)
         self.checker = checker
 
+    @staticmethod
+    def _extract_run_name(path: str) -> str:
+        name = os.path.basename(path)
+        for ext in ['.tar.gz', '.tgz', '.zip', '.tar']:
+            if name.endswith(ext):
+                return name[:-len(ext)]
+        return name
+
     def handle_logs(self):
-        """Loop through nodes in the zip file and process logs for each node."""
-        # Open the zip file and process tar.gz files inside it that each correspond to a node
+        """Loop through nodes in the archive and process logs for each node."""
+        path = self.logs_path
 
-        with zipfile.ZipFile(self.logs_path, 'r') as zip_file:
-            # List all files inside the zip
-            file_list = zip_file.namelist()
+        if path.endswith('.zip'):
+            self._handle_zip(path)
+        elif path.endswith(('.tar', '.tar.gz', '.tgz')):
+            self._handle_tar(path)
+        else:
+            raise ValueError(f"Unsupported archive format: {path}")
 
-            for file_name in file_list:
-                if file_name.endswith(".tar.gz"):
+        self.process_run_data()
+
+    def _handle_zip(self, path: str):
+        with zipfile.ZipFile(path, 'r') as zip_file:
+            for file_name in zip_file.namelist():
+                if file_name.endswith(".tar.gz") and not file_name.startswith("__MACOSX/"):
                     node_name = file_name.replace(".tar.gz", "").rsplit("--", 1)[1]
                     print(f"Processing node {node_name}")
-
-                    # Open the tar.gz file as bytes
                     with zip_file.open(file_name) as tar_file_io:
-                        args = argparse.Namespace(
-                            node_name=node_name,
-                            run_name=self.run_name,
-                        )
-                        self.checker.reset_node(args)
-                        self.checker.handle_node_from_archive(tar_file_io)
-                    self.checker.post_process_node_logs()
-                    self.process_node_data()
-        self.process_run_data()
+                        self._process_node(tar_file_io, node_name)
+
+    def _handle_tar(self, path: str):
+        with tarfile.open(path, 'r:*') as tar_file:
+            for member in tar_file.getmembers():
+                if member.isfile() and member.name.endswith(".tar.gz") and not member.name.startswith("__MACOSX/"):
+                    node_name = member.name.replace(".tar.gz", "").rsplit("--", 1)[1]
+                    print(f"Processing node {node_name}")
+                    tar_gz_io = tar_file.extractfile(member)
+                    if tar_gz_io is None:
+                        continue
+                    self._process_node(tar_gz_io, node_name)
+
+    def _process_node(self, fileobj, node_name: str):
+        args = argparse.Namespace(
+            node_name=node_name,
+            run_name=self.run_name,
+        )
+        self.checker.reset_node(args)
+        self.checker.handle_node_from_archive(fileobj)
+        self.checker.post_process_node_logs()
+        self.process_node_data()
 
     def process_node_data(self):
         """Process the parsed data for a single node."""
