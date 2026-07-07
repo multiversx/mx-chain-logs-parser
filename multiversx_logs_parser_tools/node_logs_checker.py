@@ -1,10 +1,10 @@
 
 try:
     # When this module is imported as part of a package
-    from .aho_corasik_parser import AhoCorasickParser
+    from .aho_corasick_parser import AhoCorasickParser
 except Exception:
     # Fallback when running the script directly (not as a package)
-    from aho_corasik_parser import AhoCorasickParser
+    from aho_corasick_parser import AhoCorasickParser
 
 import argparse
 import json

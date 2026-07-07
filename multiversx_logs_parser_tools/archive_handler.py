@@ -5,7 +5,7 @@ import tarfile
 import zipfile
 from typing import TypeVar
 
-from .aho_corasik_parser import AhoCorasickParser
+from .aho_corasick_parser import AhoCorasickParser
 from .helpers import validate_file_path
 from .node_logs_checker import NodeLogsChecker
 

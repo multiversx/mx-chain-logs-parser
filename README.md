@@ -10,10 +10,10 @@ In order to create an application that uses off-line parsing of logs files, thes
 - run level methods should be implemented in inheriting classes
 
 ### NODE LOGS CHECKER
-- Node level processing, that loops through individual log files for a node and calls its instance of the AhoCorasikParser to search for entries with pre-defined key phrases
+- Node level processing, that loops through individual log files for a node and calls its instance of the AhoCorasickParser to search for entries with pre-defined key phrases
 - node level methods should be implemented in inheriting classes
 
-### AHO-CORASIK PARSER
+### AHO-CORASICK PARSER
 - Log level processing implementing the Aho-Corasick algorithm that searches for a list of given keywords simultaneously. It uses an *EntryParser* to extract information from the entries of interest
 
 ### ENTRY PARSER

@@ -1,2 +1,2 @@
-AhoCorasikParser
+AhoCorasickParser
 NodeLogsChecker

@@ -3,7 +3,7 @@ from re import Pattern
 import re
 from typing import Any
 
-from multiversx_logs_parser_tools.aho_corasik_parser import AhoCorasickParser
+from multiversx_logs_parser_tools.aho_corasick_parser import AhoCorasickParser
 
 from .header_structures import HeaderData
 

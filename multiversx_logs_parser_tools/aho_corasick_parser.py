@@ -11,7 +11,7 @@ from .entry_parser import EntryParser
 class AhoCorasickParser(ABC):
     def __init__(self):
         self.initialize_checker()
-        self.entry_parser = EntryParser(node_name='')
+        self.entry_parser = EntryParser()
         # Create the automaton & add patterns
         self.automaton: Automaton = ahocorasick.Automaton()
         for pattern, index in self.get_patterns():
