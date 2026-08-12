@@ -30,8 +30,15 @@ class HeaderAnalysisParser(AhoCorasickParser):
 
         # Additional processing specific to header checking can be added here
         if pattern_idx < 3 and 'parameters' in parsed:
-            parameter = parsed.pop('parameters').split(' = ', 1)[1]
-            header = json.loads(parameter)
+            parts = parsed.pop('parameters').split(' = ', 1)
+            if len(parts) < 2 or not parts[1]:
+                print("    Warning: could not parse header parameters from line:", line.strip())
+                return {}
+            try:
+                header = json.loads(parts[1])
+            except json.JSONDecodeError:
+                print("    Warning: could not decode header JSON from line:", line.strip())
+                return {}
             if pattern_idx < 2:
                 self.parsed_headers.add_proposed_header(header)
             elif pattern_idx == 2:
