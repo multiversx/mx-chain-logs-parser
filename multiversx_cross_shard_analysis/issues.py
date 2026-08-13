@@ -1,10 +1,11 @@
 from enum import Enum
 from typing import Any, Callable
 
+from multiversx_cross_shard_analysis.constants import (ALL_SHARDS_ID,
+                                                       META_SHARD_ID)
+
 DEFAULT_MAX_ROUND_GAP_ALLOWED = 3
 DEFAULT_SUPERNOVA_ACTIVATION_EPOCH = 2
-META_SHARD_ID = 4294967295
-ALL_SHARDS_ID = 4294967280
 
 
 class Issues(Enum):

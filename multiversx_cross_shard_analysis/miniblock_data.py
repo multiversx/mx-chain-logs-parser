@@ -1,7 +1,7 @@
-
 from typing import Any
 
-from multiversx_cross_shard_analysis.constants import (TYPE_NAMES, Colors)
+from multiversx_cross_shard_analysis.constants import (META_SHARD_ID,
+                                                       TYPE_NAMES, Colors)
 from multiversx_cross_shard_analysis.decode_reserved import \
     get_default_decoded_data
 from multiversx_cross_shard_analysis.issues import Issues
@@ -15,7 +15,8 @@ class MiniblockData:
 
     def verify_miniblocks(self) -> None:
         for mb_hash, mb_info in self.miniblocks.items():
-            mb_info['mentioned'] = sorted(mb_info.get('mentioned', []), key=lambda x: (x[1].get('epoch', 0), x[1].get('round', 0)))
+            mb_info['mentioned'] = sorted(mb_info.get('mentioned', []),
+                                          key=lambda x: (x[1].get('epoch', 0), x[1].get('round', 0)))
             mentioning_header = mb_info['mentioned'][0][1] if mb_info['mentioned'] else None
             if mentioning_header:
                 mb_info['first_seen_round'] = mentioning_header.get('round')
@@ -38,9 +39,11 @@ class MiniblockData:
             reserved = get_default_decoded_data(tx_count=tx_count)
             if "meta" in mention_type:
                 if 'exec' in mention_type:
-                    color = Colors.meta_origin_exec_committed if mention_type.startswith('meta_origin') else Colors.meta_dest_exec_committed
+                    color = Colors.meta_origin_exec_committed if mention_type.startswith(
+                        'meta_origin') else Colors.meta_dest_exec_committed
                 else:
-                    color = Colors.meta_origin_committed if mention_type.startswith('meta_origin') else Colors.meta_dest_committed
+                    color = Colors.meta_origin_committed if mention_type.startswith(
+                        'meta_origin') else Colors.meta_dest_committed
             else:
                 if 'exec' in mention_type:
                     color = Colors.origin_exec_final if mention_type.startswith('origin') else Colors.dest_exec_final
@@ -51,16 +54,19 @@ class MiniblockData:
             state = header.get('reserved', {}).get('State', '')
             if 'exec' in mention_type:
                 if state == 'Proposed':
-                    color = Colors.origin_exec_proposed if mention_type.startswith('origin') else Colors.dest_exec_proposed
+                    color = Colors.origin_exec_proposed if mention_type.startswith(
+                        'origin') else Colors.dest_exec_proposed
                 elif state == 'PartialExecuted':
-                    color = Colors.origin_exec_partial_executed if mention_type.startswith('origin') else Colors.dest_exec_partial_executed
+                    color = Colors.origin_exec_partial_executed if mention_type.startswith(
+                        'origin') else Colors.dest_exec_partial_executed
                 else:
                     color = Colors.origin_exec_final if mention_type.startswith('origin') else Colors.dest_exec_final
             else:
                 if state == 'Proposed':
                     color = Colors.origin_proposed if mention_type.startswith('origin') else Colors.dest_proposed
                 elif state == 'PartialExecuted':
-                    color = Colors.origin_partial_executed if mention_type.startswith('origin') else Colors.dest_partial_executed
+                    color = Colors.origin_partial_executed if mention_type.startswith(
+                        'origin') else Colors.dest_partial_executed
                 else:
                     color = Colors.origin_final if mention_type.startswith('origin') else Colors.dest_final
         return color
@@ -118,7 +124,9 @@ class MiniblockData:
                 reserved = header.get('reserved')
                 if reserved == {}:
                     reserved = get_default_decoded_data(tx_count=mb_info['txCount'])
-                mb_data['mentioned'][round_number].append((mention_type, f"txs {reserved['IndexOfFirstTxProcessed']}–{reserved['IndexOfLastTxProcessed']} / {mb_info['txCount']}", color))
+                mb_data['mentioned'][round_number].append((mention_type,
+                                                           f"txs {reserved['IndexOfFirstTxProcessed']}\u2013{reserved['IndexOfLastTxProcessed']} / {mb_info['txCount']}",
+                                                           color))
 
             if not origin_epoch:
                 print(f"Warning: origin_epoch not found for miniblock {mb_hash}")
@@ -178,7 +186,8 @@ class MiniblockData:
 
         seen_miniblocks = set[str]()
 
-        for mb_hash, mb_info in [(hash, miniblock) for hash, miniblock in self.miniblocks.items() if miniblock['hasAlarm']]:
+        for mb_hash, mb_info in [(hash, miniblock) for hash, miniblock in self.miniblocks.items() if
+                                 miniblock['hasAlarm']]:
             nonce = mb_info['nonce']
             shard_id = mb_info['senderShardID']
             epoch = mb_info['first_seen_epoch']
@@ -221,7 +230,9 @@ class MiniblockData:
                     report[epoch][issue][shard_id][nonce][round_number].append((label, mb_hash[:15] + '...', color))
                     seen_miniblocks.add(mb_hash)
 
-        for mb_hash in [item for item in self.miniblocks.keys() if item not in seen_miniblocks and self.miniblocks[item]['nonce'] in nonce_alarms.get(self.miniblocks[item]['senderShardID'], set())]:
+        for mb_hash in [item for item in self.miniblocks.keys() if
+                        item not in seen_miniblocks and self.miniblocks[item]['nonce'] in nonce_alarms.get(
+                                self.miniblocks[item]['senderShardID'], set())]:
             mb_info = self.miniblocks[mb_hash]
             nonce = mb_info['nonce']
             shard_id = mb_info['senderShardID']
@@ -313,9 +324,6 @@ def sort_report1(report: dict[int, dict[int, Any]]) -> dict[int, dict[int, Any]]
                     }
 
     return out
-
-
-META_SHARD_ID = 4294967295
 
 
 def sort_any(data: Any) -> Any:

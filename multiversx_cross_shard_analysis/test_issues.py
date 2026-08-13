@@ -1,6 +1,7 @@
 from typing import Any
 
-from multiversx_cross_shard_analysis.issues import ALL_SHARDS_ID, META_SHARD_ID, Issues
+from multiversx_cross_shard_analysis.constants import ALL_SHARDS_ID, META_SHARD_ID
+from multiversx_cross_shard_analysis.issues import Issues
 
 
 def mention(mtype: str, round_number: int, shard_id: int) -> tuple[str, dict[str, Any]]:

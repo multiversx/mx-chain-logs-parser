@@ -1,11 +1,13 @@
 from enum import Enum
 
-
 origin_shard = "origin_shard"
 dest_shard = "dest_shard"
 meta = "meta"
 proposed = "proposed"
 committed = "committed"
+
+META_SHARD_ID = 4294967295
+ALL_SHARDS_ID = 4294967280
 
 MiniBlockTypes = Enum("MiniBlockType", [
     'MiniBlockHeaders',
@@ -46,7 +48,6 @@ MentionType = Enum("MentionType", [
     "meta_dest_exec_proposed",
     "meta_dest_exec_committed",
 ])
-
 
 # Mappings from field number to field name for MiniBlockHeaderReserved
 FIELD_NAME_MAPPING = {
