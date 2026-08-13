@@ -3,6 +3,8 @@ from typing import Any, Callable
 
 DEFAULT_MAX_ROUND_GAP_ALLOWED = 3
 DEFAULT_SUPERNOVA_ACTIVATION_EPOCH = 2
+META_SHARD_ID = 4294967295
+ALL_SHARDS_ID = 4294967280
 
 
 class Issues(Enum):
@@ -28,18 +30,29 @@ class Issues(Enum):
         sender = mb_info.get("senderShardID")
         count = 0
 
-        for _, header in mb_info.get("mentioned", []):
+        for mtype, header in mb_info.get("mentioned", []):
+            # meta_origin mentions are origin notarizations, not destination registrations;
+            # for meta-destined miniblocks they also occur at shard_id == receiver
+            if mtype.startswith('meta_origin'):
+                continue
             if header.get("shard_id") == receiver and mb_info.get("type") in [0, 90]:
                 count += 1
 
         is_dest_missing = count == 0 and mb_info.get("type") in [0, 90]
-        is_dest_duplicate = count > 4 and mb_info.get("type") in [0, 90] and receiver != sender and mb_info.get("first_seen_epoch", 0) >= DEFAULT_SUPERNOVA_ACTIVATION_EPOCH
+        is_dest_duplicate = count > 4 and mb_info.get("type") in [0, 90] and receiver != sender and mb_info.get(
+            "first_seen_epoch", 0) >= DEFAULT_SUPERNOVA_ACTIVATION_EPOCH
 
         return is_dest_missing or is_dest_duplicate
 
     # Logic for: WRONG_PROCESSING_ORDER
     def check_wrong_order(self, mb_info: dict[str, Any]) -> bool:
+        if mb_info.get("receiverShardID") == ALL_SHARDS_ID:
+            return self.check_wrong_order_broadcast(mb_info)
+
         max_phase = -1
+        # for meta-destined miniblocks the dest proposal and the meta origin commit happen
+        # in the same metablock, so no ordering is asserted between them
+        is_meta_destined = mb_info.get("receiverShardID") == META_SHARD_ID
 
         for mtype, data in sorted(mb_info.get('mentioned', []), key=lambda x: x[1].get('round', 0)):
             if 'exec' in mtype:
@@ -47,11 +60,41 @@ class Issues(Enum):
             elif 'meta' in mtype:
                 phase = 2 if 'origin' in mtype else 5
             else:
-                phase = 0 if 'origin' in mtype else 3
+                phase = 0 if 'origin' in mtype else (2 if is_meta_destined else 3)
 
             if phase < max_phase:
                 return True
             max_phase = phase
+
+        return False
+
+    # broadcast miniblocks reach every shard independently and meta notarizations of
+    # different shards interleave, so ordering is checked per destination shard;
+    # meta_dest mentions carry no destination shard id and are skipped
+    def check_wrong_order_broadcast(self, mb_info: dict[str, Any]) -> bool:
+        mentions = sorted(mb_info.get('mentioned', []), key=lambda x: x[1].get('round', 0))
+        dest_shards = {data.get('shard_id') for mtype, data in mentions if
+                       'origin' not in mtype and 'meta' not in mtype}
+
+        for shard in dest_shards:
+            max_phase = -1
+            for mtype, data in mentions:
+                if 'meta_dest' in mtype:
+                    continue
+                is_origin = 'origin' in mtype
+                if not is_origin and data.get('shard_id') != shard:
+                    continue
+
+                if 'exec' in mtype:
+                    phase = 1 if is_origin else 4
+                elif 'meta' in mtype:
+                    phase = 2
+                else:
+                    phase = 0 if is_origin else 3
+
+                if phase < max_phase:
+                    return True
+                max_phase = phase
 
         return False
 
