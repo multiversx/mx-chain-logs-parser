@@ -1,3 +1,4 @@
+
 import json
 import re
 from typing import Any
@@ -44,20 +45,49 @@ class EntryParser:
             return {'shard': '', 'epoch': 0, 'round': 0, 'subround': ''}
 
     def parse_message(self, message: str):
+
+        # header hash entry
+        m = re.search(r'header\s+hash:\s*([0-9a-fA-F]+)', message)
+        if m:
+            return "HEADER TABLE", f"hash={m.group(1)}"
+
+        # Epoch begins
+        m = re.search(r'EPOCH\s+(\d+)\s+BEGINS\s+IN\s+ROUND\s+\((\d+)\)', message, re.IGNORECASE)
+        if m:
+            epoch, rnd = m.group(1), m.group(2)
+            return "BEGIN EPOCH", f"epoch={epoch}; round={rnd}"
+
+        # ROUND begins
+        m = re.search(r'ROUND\s+(-?\d+)\s+BEGINS', message, re.IGNORECASE)
+        if m:
+            return "BEGIN ROUND", f"round={m.group(1)}"
+
+        # SUBROUND begins
+        m = re.search(r'SUBROUND\s+\(([^)]+)\)\s+BEGINS', message, re.IGNORECASE)
+        if m:
+            return "BEGIN SUBROUND", f"subround={m.group(1)}"
+
+        # Proposed block added
+        m = re.search(r'Added proposed block with nonce\s+(\d+)', message, re.IGNORECASE)
+        if m:
+            return "PROPOSED BLOCK", f"nonce={m.group(1)}"
+
+        # Assembled block added
+        m = re.search(r'Added\s+assembled\s+block\s+with\s+nonce\s+(\d+)', message, re.IGNORECASE)
+        if m:
+            return "ASSEMBLED BLOCK", f"nonce={m.group(1)}"
+
+        # --- common logic ---
         if separator in message:
-            # if the separator is present, split the content between message and parameters using the separator
-            message, parameters = message.split(separator, 1)
-            return message.strip(), parameters.strip()
+            msg, params = message.split(separator, 1)
+            return msg.strip(), params.strip()
 
-        elif ' = ' in message:
-            # if no separator, but the content includes '=', assume first parameter is the word before the '=' and split before that word
-            message_parts = message.split(' = ', 1)
-            message, first_parameter_label = message_parts[0].rsplit(' ', 1)
-            return message.strip(), first_parameter_label.strip() + ' = ' + message_parts[1].strip()
+        if ' = ' in message:
+            parts = message.split(' = ', 1)
+            msg, label = parts[0].rsplit(' ', 1)
+            return msg.strip(), label.strip() + ' = ' + parts[1].strip()
 
-        else:
-            # no parameters in the entry or cannot determine if there are parameters present
-            return message.strip(), ''
+        return message.strip(), ''
 
     def parse_log_entry(self, log_content: str) -> dict[str, str]:
         data = {}
@@ -81,3 +111,22 @@ if __name__ == "__main__":
     header = json.loads(parameter)
     print(json.dumps(result, indent=4))
     print(json.dumps(header, indent=4))
+
+    content_list = ['DEBUG[2025-11-12 08:57:53.007] [..ensus/chronology] [0/0/1/(END_ROUND)] 2025-11-12 08:57:53.000932854  ################################### ROUND 2 BEGINS (1762937873000) ################################### ',
+                    'DEBUG[2025-11-12 08:56:47.006] [..ensus/chronology] [0/0/-10/] 2025-11-12 08:56:47.000575216 ################################## ROUND -9 BEGINS (1762937807000) ##################################',
+                    'DEBUG[2025-11-12 13:36:32.680][..nsus/spos/bls/v2][0/13/23926/(END_ROUND)] 2025-11-12 13:36:32.680514567 + ++++++++++++++++++++++ Added proposed block with nonce 23922 in blockchain + ++++++++++++++++++++++ ',
+                    'DEBUG[2025-11-12 13:36:33.200][..ensus/chronology][0/13/23927/(END_ROUND)] 2025-11-12 13:36:33.200192207 ................................... SUBROUND(START_ROUND) BEGINS ................................... ',
+                    'DEBUG[2025-11-12 13:36:33.202][..ensus/chronology][0/13/23927/(START_ROUND)] 2025-11-12 13:36:33.202271507 ...................................... SUBROUND(BLOCK) BEGINS ...................................... ',
+                    'DEBUG[2025-11-12 13:36:33.228][..ensus/chronology][0/13/23927/(BLOCK)] 2025-11-12 13:36:33.227644328 .................................... SUBROUND(SIGNATURE) BEGINS .................................... ',
+                    'DEBUG[2025-11-12 13:36:33.234][..ensus/chronology][0/13/23927/(SIGNATURE)] 2025-11-12 13:36:33.234186524 .................................... SUBROUND(END_ROUND) BEGINS .................................... ',
+                    'DEBUG[2025-11-12 12:01:22.747][..Start/shardchain][0/8/14409/(END_ROUND)]  # EPOCH 9 BEGINS IN ROUND (14409) ##################################'
+                    'DEBUG[2025-11-12 09:27:35.419] [process/block] [0/1/299/(END_ROUND)] header hash: 209622a0c04a556829507a7a2176aaee2a58a524766b805dc9a423e2fe023072',
+                    'DEBUG[2025-11-12 09:01:35.041] [..nsus/spos/bls/v1] [0/0/39/(END_ROUND)] 2025-11-12 09:01:35.035239399 ------------------------ Added assembled block with nonce 39 in blockchain ------------------------',
+                    ]
+    for content in content_list:
+        result = EntryParser('').parse_log_entry(content)
+        print(json.dumps(result, indent=4))
+
+    content = 'DEBUG[2025-11-12 08:57:47.151] [process/sync]       [0/0/1/(END_ROUND)] forkDetector.appendHeaderInfo            round = 1 nonce = 1 hash = 310001ecb0e9f441b916adf87b71cc959745f48ba07b78c9df5741b2b35bbf8d state = 0 probable highest nonce = 1 last checkpoint nonce = 1 final checkpoint nonce = 0 has proof = true '
+    result = EntryParser('').parse_log_entry(content)
+    print(json.dumps(result, indent=4))

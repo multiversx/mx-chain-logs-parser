@@ -78,10 +78,10 @@ class NodeLogsChecker(Generic[P]):
         if not path:
             node_reports_path = f'./Reports/{self.run_name}/Nodes'
             output_file = Path(f'{node_reports_path}/{self.node_name}_report.json')
-            directory = os.path.dirname(output_file)
-            Path(directory).mkdir(parents=True, exist_ok=True)
         else:
             output_file = Path(path + f'/{self.node_name}_report.json')
+        directory = os.path.dirname(output_file)
+        Path(directory).mkdir(parents=True, exist_ok=True)
         with open(output_file, "w") as json_file:
             json.dump(self.create_json_for_node(), json_file, indent=4)
 
